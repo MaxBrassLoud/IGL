@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin Login — Schreiber & Partner</title>
+  <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+
+<main class="login-page">
+  <div class="login-card">
+    <div class="login-logo">S&amp;P Ingenieure</div>
+    <div class="login-subtitle">Admin Panel</div>
+    <p class="login-title">Anmelden</p>
+
+    <div class="login-error" id="login-error" role="alert"></div>
+
+    <form id="login-form" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="username">Benutzername</label>
+        <input type="text" id="username" name="username" class="form-input"
+               autocomplete="username" required autofocus placeholder="admin">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password">Passwort</label>
+        <input type="password" id="password" name="password" class="form-input"
+               autocomplete="current-password" required placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn btn--primary" style="width:100%;justify-content:center;padding:.75rem 1rem;font-size:.78rem;">
+        Anmelden →
+      </button>
+    </form>
+
+    <p style="margin-top:1.5rem;font-size:.75rem;color:var(--a-text-dim);text-align:center;">
+      Standard-Zugangsdaten: <code style="font-family:var(--a-ff-mono);color:var(--a-accent);">admin / admin123</code><br>
+      <span style="color:#4a4538;">Bitte in server.py vor Produktiveinsatz ändern.</span>
+    </p>
+
+    <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--a-border);text-align:center;">
+      <a href="/" style="font-family:var(--a-ff-mono);font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:var(--a-text-dim);transition:.18s;" onmouseover="this.style.color='var(--a-accent)'" onmouseout="this.style.color='var(--a-text-dim)'">
+        ← Zurück zur Website
+      </a>
+    </div>
+  </div>
+</main>
+
+<script src="/static/js/admin.js"></script>
+<script>
+  // Weiterleitung wenn bereits eingeloggt
+  if (getToken()) window.location.href = '/admin/';
+
+  // Session-expired Hinweis
+  if (new URLSearchParams(location.search).get('session') === 'expired') {
+    const err = document.getElementById('login-error');
+    err.textContent = 'Ihre Sitzung ist abgelaufen. Bitte erneut anmelden.';
+    err.classList.add('visible');
+  }
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('[type="submit"]');
+    const errEl = document.getElementById('login-error');
+    errEl.classList.remove('visible');
+    btn.textContent = 'Anmelden …';
+    btn.disabled = true;
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+
+      if (res.ok && data.token) {
+        setToken(data.token);
+        window.location.href = '/admin/';
+      } else {
+        errEl.textContent = data.error || 'Anmeldung fehlgeschlagen.';
+        errEl.classList.add('visible');
+        btn.textContent = 'Anmelden →';
+        btn.disabled = false;
+      }
+    } catch (err) {
+      errEl.textContent = 'Verbindungsfehler. Bitte erneut versuchen.';
+      errEl.classList.add('visible');
+      btn.textContent = 'Anmelden →';
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
