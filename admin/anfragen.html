@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Anfragen — Admin</title>
+  <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">S&amp;P</div>
+      <div class="sidebar-tag">Admin Panel</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Verwaltung</div>
+      <a href="/admin/" class="sidebar-link"><span class="icon">⬡</span> Dashboard</a>
+      <a href="/admin/anfragen" class="sidebar-link active">
+        <span class="icon">✉</span> Anfragen
+        <span class="sidebar-badge" id="badge-anfragen" style="display:none">0</span>
+      </a>
+      <a href="/admin/projekte" class="sidebar-link"><span class="icon">◈</span> Projekte</a>
+      <div class="sidebar-section-label" style="margin-top:1rem;">Website</div>
+      <a href="/" target="_blank" class="sidebar-link"><span class="icon">↗</span> Website ansehen</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">Eingeloggt als <strong id="sidebar-username">—</strong></div>
+      <button class="btn btn--ghost btn--sm" onclick="logout()">Abmelden</button>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="topbar">
+      <div class="topbar-title"><strong>Anfragen</strong> <span>/ Kontaktanfragen verwalten</span></div>
+      <div class="topbar-actions">
+        <button class="btn btn--danger btn--sm" id="btn-delete-all" style="display:none;">Alle löschen</button>
+        <button class="btn btn--success btn--sm" id="btn-mark-all">Alle als gelesen</button>
+        <button id="sidebar-toggle" class="btn btn--ghost btn--sm" style="display:none;" aria-label="Menü">☰</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>Kontaktanfragen</h1>
+        <p id="anfragen-count">Wird geladen …</p>
+      </div>
+
+      <!-- Filter -->
+      <div style="display:flex;gap:.75rem;margin-bottom:1.25rem;flex-wrap:wrap;">
+        <button class="btn btn--ghost btn--sm filter-btn active" data-filter="all">Alle</button>
+        <button class="btn btn--ghost btn--sm filter-btn" data-filter="unread">Ungelesen</button>
+        <button class="btn btn--ghost btn--sm filter-btn" data-filter="read">Gelesen</button>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <span class="table-title" id="table-label">Alle Anfragen</span>
+          <input type="search" class="search-input" id="search-input" placeholder="Suchen …" aria-label="Anfragen durchsuchen">
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:50px;">#</th>
+              <th>Name</th>
+              <th>E-Mail</th>
+              <th>Betreff</th>
+              <th>Datum</th>
+              <th>Status</th>
+              <th style="width:130px;">Aktionen</th>
+            </tr>
+          </thead>
+          <tbody id="anfragen-tbody">
+            <tr><td colspan="7" class="table-empty">Wird geladen …</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Anfrage Details</h3>
+      <button class="btn btn--ghost btn--sm" onclick="closeModal('detail-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-meta">
+        <div>
+          <div class="detail-field-label">Name</div>
+          <div class="detail-field-value" id="d-name">—</div>
+        </div>
+        <div>
+          <div class="detail-field-label">E-Mail</div>
+          <div class="detail-field-value" id="d-email">—</div>
+        </div>
+        <div>
+          <div class="detail-field-label">Telefon</div>
+          <div class="detail-field-value" id="d-telefon">—</div>
+        </div>
+        <div>
+          <div class="detail-field-label">Datum</div>
+          <div class="detail-field-value" id="d-datum">—</div>
+        </div>
+        <div style="grid-column:1/-1">
+          <div class="detail-field-label">Betreff</div>
+          <div class="detail-field-value" id="d-betreff">—</div>
+        </div>
+      </div>
+      <div class="detail-field-label" style="margin-bottom:.5rem;">Nachricht</div>
+      <div class="detail-msg" id="d-nachricht">—</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn--danger btn--sm" id="d-btn-delete">Löschen</button>
+      <button class="btn btn--success btn--sm" id="d-btn-read">Als gelesen markieren</button>
+      <a class="btn btn--primary btn--sm" id="d-btn-reply" href="#">Per E-Mail antworten</a>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <h4 id="confirm-title">Sicher?</h4>
+    <p id="confirm-msg"></p>
+    <div class="confirm-actions">
+      <button class="btn btn--ghost" id="confirm-no">Abbrechen</button>
+      <button class="btn btn--danger" id="confirm-yes">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/admin.js"></script>
+<script>
+let allAnfragen = [];
+let currentFilter = 'all';
+let currentAnfrageId = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!requireAuth()) return;
+  if (window.innerWidth <= 900) document.getElementById('sidebar-toggle').style.display = 'inline-flex';
+  const stored = sessionStorage.getItem('sp_admin_user');
+  if (stored) document.getElementById('sidebar-username').textContent = stored;
+
+  await loadAnfragen();
+  updateSidebarBadges();
+
+  // Filter buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      renderTable();
+    });
+  });
+
+  // Search
+  document.getElementById('search-input').addEventListener('input', renderTable);
+
+  // Bulk actions
+  document.getElementById('btn-mark-all').addEventListener('click', markAllRead);
+  document.getElementById('btn-delete-all').addEventListener('click', deleteAllRead);
+});
+
+async function loadAnfragen() {
+  try {
+    const res = await apiFetch('/api/admin/anfragen');
+    if (!res.ok) throw new Error();
+    allAnfragen = await res.json();
+    renderTable();
+  } catch {
+    document.getElementById('anfragen-tbody').innerHTML =
+      '<tr><td colspan="7" class="table-empty">Fehler beim Laden.</td></tr>';
+  }
+}
+
+function renderTable() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  let data = allAnfragen;
+
+  if (currentFilter === 'unread') data = data.filter(a => !a.gelesen);
+  if (currentFilter === 'read')   data = data.filter(a => a.gelesen);
+  if (search) data = data.filter(a =>
+    (a.name + a.email + a.betreff + a.nachricht).toLowerCase().includes(search)
+  );
+
+  const unread = allAnfragen.filter(a => !a.gelesen).length;
+  document.getElementById('anfragen-count').textContent =
+    `${allAnfragen.length} Anfrage(n) insgesamt, ${unread} ungelesen`;
+
+  const badge = document.getElementById('badge-anfragen');
+  badge.textContent = unread;
+  badge.style.display = unread > 0 ? 'inline-block' : 'none';
+
+  const hasRead = allAnfragen.some(a => a.gelesen);
+  document.getElementById('btn-delete-all').style.display = hasRead ? 'inline-flex' : 'none';
+
+  const tbody = document.getElementById('anfragen-tbody');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="table-empty">Keine Anfragen gefunden.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(a => `
+    <tr style="${!a.gelesen ? 'background:rgba(184,137,42,0.04)' : ''}">
+      <td class="mono">#${a.id}</td>
+      <td style="font-weight:${a.gelesen ? 400 : 600};color:${a.gelesen ? 'var(--a-text)' : 'var(--a-heading)'}">
+        ${esc(a.name)}
+      </td>
+      <td class="mono" style="font-size:.8rem;">${esc(a.email)}</td>
+      <td>${esc(a.betreff || '—')}</td>
+      <td class="mono">${formatDate(a.timestamp)}</td>
+      <td><span class="badge ${a.gelesen ? 'badge--read' : 'badge--new'}">${a.gelesen ? 'Gelesen' : 'Neu'}</span></td>
+      <td>
+        <div class="action-group">
+          <button class="btn btn--ghost btn--sm" onclick="openDetail(${a.id})" title="Öffnen">👁</button>
+          ${!a.gelesen ? `<button class="btn btn--success btn--sm" onclick="markRead(${a.id})" title="Als gelesen">✓</button>` : ''}
+          <button class="btn btn--danger btn--sm" onclick="deleteAnfrage(${a.id})" title="Löschen">✕</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function openDetail(id) {
+  const a = allAnfragen.find(x => x.id === id);
+  if (!a) return;
+  currentAnfrageId = id;
+  document.getElementById('d-name').textContent = a.name;
+  document.getElementById('d-email').textContent = a.email;
+  document.getElementById('d-telefon').textContent = a.telefon || '—';
+  document.getElementById('d-datum').textContent = formatDate(a.timestamp);
+  document.getElementById('d-betreff').textContent = a.betreff || '—';
+  document.getElementById('d-nachricht').textContent = a.nachricht;
+  document.getElementById('d-btn-reply').href = `mailto:${a.email}?subject=Re: ${encodeURIComponent(a.betreff || 'Ihre Anfrage')}`;
+
+  const btnRead = document.getElementById('d-btn-read');
+  btnRead.style.display = a.gelesen ? 'none' : 'inline-flex';
+  btnRead.onclick = async () => { await markRead(id); closeModal('detail-modal'); };
+
+  document.getElementById('d-btn-delete').onclick = async () => {
+    await deleteAnfrage(id);
+    closeModal('detail-modal');
+  };
+
+  document.getElementById('detail-modal').classList.add('open');
+
+  // Auto-mark as read after opening
+  if (!a.gelesen) markRead(id, true);
+}
+
+async function markRead(id, silent = false) {
+  try {
+    const res = await apiFetch(`/api/admin/anfragen/${id}/gelesen`, { method: 'PATCH' });
+    if (!res.ok) throw new Error();
+    const idx = allAnfragen.findIndex(a => a.id === id);
+    if (idx !== -1) allAnfragen[idx].gelesen = true;
+    renderTable();
+    updateSidebarBadges();
+    if (!silent) showToast('Als gelesen markiert.', 'success');
+  } catch {
+    if (!silent) showToast('Fehler beim Markieren.', 'error');
+  }
+}
+
+async function deleteAnfrage(id) {
+  const ok = await showConfirm('Anfrage löschen?', 'Diese Aktion kann nicht rückgängig gemacht werden.');
+  if (!ok) return;
+  try {
+    const res = await apiFetch(`/api/admin/anfragen/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error();
+    allAnfragen = allAnfragen.filter(a => a.id !== id);
+    renderTable();
+    updateSidebarBadges();
+    showToast('Anfrage gelöscht.', 'success');
+  } catch {
+    showToast('Fehler beim Löschen.', 'error');
+  }
+}
+
+async function markAllRead() {
+  try {
+    const res = await apiFetch('/api/admin/anfragen/alle-gelesen', { method: 'PATCH' });
+    if (!res.ok) throw new Error();
+    allAnfragen.forEach(a => a.gelesen = true);
+    renderTable();
+    updateSidebarBadges();
+    showToast('Alle als gelesen markiert.', 'success');
+  } catch {
+    showToast('Fehler.', 'error');
+  }
+}
+
+async function deleteAllRead() {
+  const ok = await showConfirm('Alle gelesenen löschen?', 'Alle als gelesen markierten Anfragen werden dauerhaft gelöscht.');
+  if (!ok) return;
+  try {
+    const res = await apiFetch('/api/admin/anfragen/gelesene-loeschen', { method: 'DELETE' });
+    if (!res.ok) throw new Error();
+    allAnfragen = allAnfragen.filter(a => !a.gelesen);
+    renderTable();
+    showToast('Gelesene Anfragen gelöscht.', 'success');
+  } catch {
+    showToast('Fehler.', 'error');
+  }
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// Close on overlay click
+document.getElementById('detail-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal('detail-modal');
+});
+</script>
+</body>
+</html>
