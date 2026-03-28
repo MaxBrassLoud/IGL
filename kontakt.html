@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Kontaktieren Sie Schreiber & Partner Ingenieure – wir freuen uns auf Ihre Anfrage.">
+  <title>Kontakt — Schreiber & Partner Ingenieure</title>
+  <link rel="stylesheet" href="static/css/main.css">
+</head>
+<body>
+
+<nav class="site-nav" role="navigation" aria-label="Hauptnavigation">
+  <div class="container">
+    <a href="index.html" class="nav-logo" aria-label="Startseite">
+      <span class="nav-logo-mark">S&amp;P</span>
+      <span class="nav-logo-tag">Ingenieure</span>
+    </a>
+    <ul class="nav-links" role="list">
+      <li><a href="index.html">Startseite</a></li>
+      <li><a href="ueber-uns.html">Über uns</a></li>
+      <li><a href="projekte.html">Projekte</a></li>
+      <li><a href="kontakt.html">Kontakt</a></li>
+    </ul>
+    <a href="kontakt.html" class="btn btn--primary nav-cta">Kontakt aufnehmen</a>
+    <button class="nav-hamburger" aria-label="Menü öffnen" aria-expanded="false" aria-controls="mobile-menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobile-menu">
+  <a href="index.html">Startseite</a>
+  <a href="ueber-uns.html">Über uns</a>
+  <a href="projekte.html">Projekte</a>
+  <a href="kontakt.html">Kontakt</a>
+</div>
+
+<main class="page-body">
+
+  <!-- ── Hero ──────────────────────────────────────────────── -->
+  <div class="page-hero">
+    <div class="container">
+      <p class="label page-hero-label">— Sprechen Sie uns an</p>
+      <h1>Kontakt</h1>
+      <p class="page-hero-sub">Haben Sie ein Bauvorhaben oder eine Frage? Wir beraten Sie gerne — kostenfrei und unverbindlich.</p>
+    </div>
+  </div>
+
+  <!-- ── Info-Boxen ────────────────────────────────────────── -->
+  <section class="section" style="padding-bottom:0;">
+    <div class="container">
+      <div class="contact-info-grid" data-reveal>
+        <div class="contact-info-box">
+          <div class="contact-info-icon">📍</div>
+          <div class="contact-info-title">Anschrift</div>
+          <div class="contact-info-text">
+            Schreiber & Partner Ingenieurbüro GmbH<br>
+            Musterstraße 12<br>
+            80333 München
+          </div>
+        </div>
+        <div class="contact-info-box">
+          <div class="contact-info-icon">📞</div>
+          <div class="contact-info-title">Telefon & E-Mail</div>
+          <div class="contact-info-text">
+            <a href="tel:+498912345678" style="color:var(--col-accent);">+49 89 12345678</a><br>
+            <a href="mailto:info@sp-ingenieure.de" style="color:var(--col-accent);">info@sp-ingenieure.de</a>
+          </div>
+        </div>
+        <div class="contact-info-box">
+          <div class="contact-info-icon">🕐</div>
+          <div class="contact-info-title">Öffnungszeiten</div>
+          <div class="contact-info-text">
+            Mo – Do: 8:00 – 17:00 Uhr<br>
+            Fr: 8:00 – 14:00 Uhr<br>
+            Sa – So: geschlossen
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Formular ───────────────────────────────────────────── -->
+  <section class="section">
+    <div class="container">
+      <div class="grid-2" style="align-items:start;gap:5rem;">
+
+        <!-- Linke Spalte: Info -->
+        <div data-reveal>
+          <span class="accent-line"></span>
+          <p class="label">Anfrage senden</p>
+          <h2 style="margin-bottom:1rem;">Schreiben Sie uns</h2>
+          <p style="margin-bottom:1.5rem;color:var(--col-muted);">
+            Füllen Sie das Formular aus und wir melden uns in der Regel innerhalb von 24 Stunden bei Ihnen. Alternativ können Sie uns direkt anrufen oder eine E-Mail schicken.
+          </p>
+          <p style="font-size:.88rem;color:var(--col-muted);">
+            Ihre Daten werden gemäß unserer <a href="datenschutz.html" style="color:var(--col-accent);text-decoration:underline;">Datenschutzerklärung</a> verarbeitet und ausschließlich zur Bearbeitung Ihrer Anfrage verwendet.
+          </p>
+          <div style="margin-top:2.5rem;padding:1.5rem;background:var(--col-surface);border:1px solid var(--col-border);border-radius:2px;">
+            <p class="label" style="margin-bottom:.75rem;">Direktkontakt</p>
+            <p style="font-size:.88rem;color:var(--col-muted);">
+              Für dringende Anfragen erreichbar Sie uns unter<br>
+              <strong><a href="tel:+498912345678" style="color:var(--col-text);">+49 89 12345678</a></strong>
+            </p>
+          </div>
+        </div>
+
+        <!-- Rechte Spalte: Formular -->
+        <div data-reveal data-reveal-delay="120">
+          <div id="form-success" class="form-success" role="alert">
+            ✓ Vielen Dank für Ihre Nachricht! Wir melden uns schnellstmöglich bei Ihnen.
+          </div>
+
+          <form id="contact-form" novalidate aria-label="Kontaktformular">
+            <div class="grid-2" style="gap:1rem;">
+              <div class="form-group">
+                <label class="form-label" for="name">Name <span aria-hidden="true">*</span></label>
+                <input type="text" id="name" name="name" class="form-input" required
+                       autocomplete="name" placeholder="Max Mustermann" aria-required="true">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="unternehmen">Unternehmen</label>
+                <input type="text" id="unternehmen" name="unternehmen" class="form-input"
+                       autocomplete="organization" placeholder="Muster GmbH">
+              </div>
+            </div>
+
+            <div class="grid-2" style="gap:1rem;">
+              <div class="form-group">
+                <label class="form-label" for="email">E-Mail <span aria-hidden="true">*</span></label>
+                <input type="email" id="email" name="email" class="form-input" required
+                       autocomplete="email" placeholder="max@beispiel.de" aria-required="true">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="telefon">Telefon</label>
+                <input type="tel" id="telefon" name="telefon" class="form-input"
+                       autocomplete="tel" placeholder="+49 89 …">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="betreff">Betreff <span aria-hidden="true">*</span></label>
+              <input type="text" id="betreff" name="betreff" class="form-input" required
+                     placeholder="Anfrage Tragwerksplanung" aria-required="true">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="nachricht">Ihre Nachricht <span aria-hidden="true">*</span></label>
+              <textarea id="nachricht" name="nachricht" class="form-textarea" required
+                        placeholder="Beschreiben Sie Ihr Vorhaben …" aria-required="true" rows="6"></textarea>
+            </div>
+
+            <div class="form-group" style="flex-direction:row;align-items:flex-start;gap:.75rem;">
+              <input type="checkbox" id="datenschutz" name="datenschutz" required aria-required="true"
+                     style="margin-top:3px;accent-color:var(--col-accent);flex-shrink:0;">
+              <label for="datenschutz" style="font-size:.88rem;color:var(--col-muted);cursor:pointer;">
+                Ich habe die <a href="datenschutz.html" style="color:var(--col-accent);text-decoration:underline;" target="_blank">Datenschutzerklärung</a> gelesen und bin mit der Verarbeitung meiner Daten einverstanden. <span aria-hidden="true">*</span>
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn--primary" style="width:100%;justify-content:center;">
+              Nachricht senden <span class="arrow">→</span>
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand-name">S&amp;P Ingenieure</div>
+        <p class="footer-desc">Schreiber & Partner Ingenieurbüro GmbH — Präzision, Verlässlichkeit und Ingenieurskunst seit 1994.</p>
+      </div>
+      <div>
+        <div class="footer-col-title">Navigation</div>
+        <ul class="footer-links">
+          <li><a href="index.html">Startseite</a></li>
+          <li><a href="ueber-uns.html">Über uns</a></li>
+          <li><a href="projekte.html">Projekte</a></li>
+          <li><a href="kontakt.html">Kontakt</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Rechtliches</div>
+        <ul class="footer-links">
+          <li><a href="impressum.html">Impressum</a></li>
+          <li><a href="datenschutz.html">Datenschutz</a></li>
+          <li><a href="cookies.html">Cookie-Richtlinie</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Kontakt</div>
+        <ul class="footer-links">
+          <li>Musterstraße 12</li>
+          <li>80333 München</li>
+          <li><a href="tel:+498912345678">+49 89 12345678</a></li>
+          <li><a href="mailto:info@sp-ingenieure.de">info@sp-ingenieure.de</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Schreiber & Partner Ingenieurbüro GmbH. Alle Rechte vorbehalten.</span>
+      <div style="display:flex;gap:1.5rem;">
+        <a href="impressum.html">Impressum</a>
+        <a href="datenschutz.html">Datenschutz</a>
+        <a href="cookies.html">Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div class="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie-Einwilligung">
+  <p class="cookie-banner-text">
+    Wir verwenden Cookies. Weitere Informationen in unserer <a href="cookies.html">Cookie-Richtlinie</a>.
+  </p>
+  <div class="cookie-actions">
+    <button class="btn btn--outline-light" data-cookie-decline>Ablehnen</button>
+    <button class="btn btn--primary" data-cookie-accept>Akzeptieren</button>
+  </div>
+</div>
+
+<script src="static/js/main.js"></script>
+<script src="static/js/kontakt.js"></script>
+</body>
+</html>

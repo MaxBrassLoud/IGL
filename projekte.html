@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Unsere Projekte – Referenzbauvorhaben von Schreiber & Partner Ingenieure.">
+  <title>Projekte — Schreiber & Partner Ingenieure</title>
+  <link rel="stylesheet" href="static/css/main.css">
+</head>
+<body>
+
+<nav class="site-nav" role="navigation" aria-label="Hauptnavigation">
+  <div class="container">
+    <a href="index.html" class="nav-logo" aria-label="Startseite">
+      <span class="nav-logo-mark">S&amp;P</span>
+      <span class="nav-logo-tag">Ingenieure</span>
+    </a>
+    <ul class="nav-links" role="list">
+      <li><a href="index.html">Startseite</a></li>
+      <li><a href="ueber-uns.html">Über uns</a></li>
+      <li><a href="projekte.html">Projekte</a></li>
+      <li><a href="kontakt.html">Kontakt</a></li>
+    </ul>
+    <a href="kontakt.html" class="btn btn--primary nav-cta">Kontakt aufnehmen</a>
+    <button class="nav-hamburger" aria-label="Menü öffnen" aria-expanded="false" aria-controls="mobile-menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobile-menu">
+  <a href="index.html">Startseite</a>
+  <a href="ueber-uns.html">Über uns</a>
+  <a href="projekte.html">Projekte</a>
+  <a href="kontakt.html">Kontakt</a>
+</div>
+
+<main class="page-body">
+
+  <!-- ── Hero ──────────────────────────────────────────────── -->
+  <div class="page-hero">
+    <div class="container">
+      <p class="label page-hero-label">— Referenzen</p>
+      <h1>Unsere Projekte</h1>
+      <p class="page-hero-sub">Jedes Bauvorhaben erzählt eine Geschichte. Hier finden Sie einen Überblick über ausgewählte Referenzprojekte aus über 30 Jahren Ingenieursarbeit.</p>
+    </div>
+  </div>
+
+  <!-- ── Filter-Leiste ─────────────────────────────────────── -->
+  <div style="background:var(--col-surface);border-bottom:1px solid var(--col-border);padding-block:.75rem;">
+    <div class="container" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+      <span class="label" style="color:var(--col-muted);">Filtern:</span>
+      <button class="btn btn--primary" style="padding:.45rem 1rem;font-size:.7rem;" data-filter="all">Alle</button>
+      <button class="btn btn--outline" style="padding:.45rem 1rem;font-size:.7rem;" data-filter="Hochbau">Hochbau</button>
+      <button class="btn btn--outline" style="padding:.45rem 1rem;font-size:.7rem;" data-filter="Industriebau">Industriebau</button>
+      <button class="btn btn--outline" style="padding:.45rem 1rem;font-size:.7rem;" data-filter="Sanierung">Sanierung</button>
+      <button class="btn btn--outline" style="padding:.45rem 1rem;font-size:.7rem;" data-filter="Sonderbauwerk">Sonderbauwerk</button>
+    </div>
+  </div>
+
+  <!-- ── Projekt-Grid ───────────────────────────────────────── -->
+  <section class="section">
+    <div class="container">
+      <div id="projects-grid" class="projects-grid" aria-live="polite" aria-label="Projektliste">
+        <!-- Wird dynamisch befüllt -->
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ── Projekt-Modal ───────────────────────────────────────── -->
+<div class="modal-overlay" id="projekt-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal" tabindex="-1">
+    <div class="modal-close">
+      <button class="modal-close-btn" id="modal-close-btn" aria-label="Modal schließen">
+        ✕ Schließen
+      </button>
+    </div>
+    <div class="modal-content">
+      <div id="modal-gallery" class="modal-gallery"></div>
+      <h2 class="modal-title" id="modal-title"></h2>
+      <p class="modal-desc" id="modal-desc"></p>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand-name">S&amp;P Ingenieure</div>
+        <p class="footer-desc">Schreiber & Partner Ingenieurbüro GmbH — Präzision, Verlässlichkeit und Ingenieurskunst seit 1994.</p>
+      </div>
+      <div>
+        <div class="footer-col-title">Navigation</div>
+        <ul class="footer-links">
+          <li><a href="index.html">Startseite</a></li>
+          <li><a href="ueber-uns.html">Über uns</a></li>
+          <li><a href="projekte.html">Projekte</a></li>
+          <li><a href="kontakt.html">Kontakt</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Rechtliches</div>
+        <ul class="footer-links">
+          <li><a href="impressum.html">Impressum</a></li>
+          <li><a href="datenschutz.html">Datenschutz</a></li>
+          <li><a href="cookies.html">Cookie-Richtlinie</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Kontakt</div>
+        <ul class="footer-links">
+          <li>Musterstraße 12</li>
+          <li>80333 München</li>
+          <li><a href="tel:+498912345678">+49 89 12345678</a></li>
+          <li><a href="mailto:info@sp-ingenieure.de">info@sp-ingenieure.de</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Schreiber & Partner Ingenieurbüro GmbH. Alle Rechte vorbehalten.</span>
+      <div style="display:flex;gap:1.5rem;">
+        <a href="impressum.html">Impressum</a>
+        <a href="datenschutz.html">Datenschutz</a>
+        <a href="cookies.html">Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div class="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie-Einwilligung">
+  <p class="cookie-banner-text">
+    Wir verwenden Cookies. Weitere Informationen in unserer <a href="cookies.html">Cookie-Richtlinie</a>.
+  </p>
+  <div class="cookie-actions">
+    <button class="btn btn--outline-light" data-cookie-decline>Ablehnen</button>
+    <button class="btn btn--primary" data-cookie-accept>Akzeptieren</button>
+  </div>
+</div>
+
+<script src="static/js/main.js"></script>
+<script src="static/js/projekte.js"></script>
+</body>
+</html>
