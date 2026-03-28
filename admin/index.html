@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Dashboard — Admin</title>
+  <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+
+  <!-- ── Sidebar ────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">S&amp;P</div>
+      <div class="sidebar-tag">Admin Panel</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Verwaltung</div>
+      <a href="/admin/" class="sidebar-link">
+        <span class="icon">⬡</span> Dashboard
+      </a>
+      <a href="/admin/anfragen" class="sidebar-link">
+        <span class="icon">✉</span> Anfragen
+        <span class="sidebar-badge" id="badge-anfragen" style="display:none">0</span>
+      </a>
+      <a href="/admin/projekte" class="sidebar-link">
+        <span class="icon">◈</span> Projekte
+      </a>
+      <div class="sidebar-section-label" style="margin-top:1rem;">Website</div>
+      <a href="/" target="_blank" class="sidebar-link">
+        <span class="icon">↗</span> Website ansehen
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">Eingeloggt als <strong id="sidebar-username">—</strong></div>
+      <button class="btn btn--ghost btn--sm" onclick="logout()">Abmelden</button>
+    </div>
+  </aside>
+
+  <!-- ── Main ───────────────────────────────────────────────── -->
+  <div class="admin-main">
+    <header class="topbar">
+      <div class="topbar-title">
+        <strong>Dashboard</strong> <span>/ Übersicht</span>
+      </div>
+      <div class="topbar-actions">
+        <button id="sidebar-toggle" class="btn btn--ghost btn--sm" style="display:none;" aria-label="Menü">☰</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>Guten Tag 👋</h1>
+        <p>Hier ist eine Übersicht über den aktuellen Stand Ihrer Website.</p>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row" id="stats-row">
+        <div class="stat-card">
+          <div class="stat-card-label">Anfragen gesamt</div>
+          <div class="stat-card-value accent" id="stat-anfragen-gesamt">—</div>
+          <div class="stat-card-sub">alle Kontaktanfragen</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Ungelesen</div>
+          <div class="stat-card-value red" id="stat-anfragen-ungelesen">—</div>
+          <div class="stat-card-sub">neue Nachrichten</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Projekte</div>
+          <div class="stat-card-value green" id="stat-projekte">—</div>
+          <div class="stat-card-sub">veröffentlicht</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Kategorien</div>
+          <div class="stat-card-value" id="stat-kategorien">—</div>
+          <div class="stat-card-sub">Projektkategorien</div>
+        </div>
+      </div>
+
+      <!-- Letzte Anfragen -->
+      <div class="table-wrap" style="margin-bottom:2rem;">
+        <div class="table-toolbar">
+          <span class="table-title">Neueste Kontaktanfragen</span>
+          <a href="/admin/anfragen" class="btn btn--ghost btn--sm">Alle ansehen →</a>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Betreff</th>
+              <th>Datum</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="recent-anfragen">
+            <tr><td colspan="5" class="table-empty">Wird geladen …</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Projekte Übersicht -->
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <span class="table-title">Projekte Übersicht</span>
+          <a href="/admin/projekte" class="btn btn--ghost btn--sm">Verwalten →</a>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Titel</th>
+              <th>Kategorie</th>
+              <th>Bilder</th>
+            </tr>
+          </thead>
+          <tbody id="recent-projekte">
+            <tr><td colspan="4" class="table-empty">Wird geladen …</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <h4 id="confirm-title">Sicher?</h4>
+    <p id="confirm-msg"></p>
+    <div class="confirm-actions">
+      <button class="btn btn--ghost" id="confirm-no">Abbrechen</button>
+      <button class="btn btn--danger" id="confirm-yes">Bestätigen</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/admin.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!requireAuth()) return;
+
+  // Sidebar toggle sichtbar auf Mobile
+  const toggle = document.getElementById('sidebar-toggle');
+  if (window.innerWidth <= 900) toggle.style.display = 'inline-flex';
+
+  // Username anzeigen
+  const stored = sessionStorage.getItem('sp_admin_user');
+  if (stored) document.getElementById('sidebar-username').textContent = stored;
+
+  await loadDashboard();
+  updateSidebarBadges();
+});
+
+async function loadDashboard() {
+  try {
+    // Stats
+    const statsRes = await apiFetch('/api/admin/stats');
+    if (statsRes.ok) {
+      const s = await statsRes.json();
+      document.getElementById('stat-anfragen-gesamt').textContent = s.anfragen_gesamt ?? 0;
+      document.getElementById('stat-anfragen-ungelesen').textContent = s.anfragen_ungelesen ?? 0;
+      document.getElementById('stat-projekte').textContent = s.projekte ?? 0;
+      document.getElementById('stat-kategorien').textContent = s.kategorien ?? 0;
+    }
+
+    // Anfragen
+    const aRes = await apiFetch('/api/admin/anfragen?limit=5');
+    if (aRes.ok) {
+      const anfragen = await aRes.json();
+      const tbody = document.getElementById('recent-anfragen');
+      if (!anfragen.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="table-empty">Keine Anfragen vorhanden.</td></tr>';
+      } else {
+        tbody.innerHTML = anfragen.map(a => `
+          <tr>
+            <td class="mono">#${a.id}</td>
+            <td>${esc(a.name)}</td>
+            <td>${esc(a.betreff || '—')}</td>
+            <td class="mono">${formatDate(a.timestamp)}</td>
+            <td><span class="badge ${a.gelesen ? 'badge--read' : 'badge--new'}">${a.gelesen ? 'Gelesen' : 'Neu'}</span></td>
+          </tr>`).join('');
+      }
+    }
+
+    // Projekte
+    const pRes = await apiFetch('/api/projekte');
+    if (pRes.ok) {
+      const data = await pRes.json();
+      const projekte = data.Bauvorhaben || [];
+      const tbody2 = document.getElementById('recent-projekte');
+      if (!projekte.length) {
+        tbody2.innerHTML = '<tr><td colspan="4" class="table-empty">Keine Projekte.</td></tr>';
+      } else {
+        tbody2.innerHTML = projekte.slice(0, 5).map((p, i) => `
+          <tr>
+            <td class="mono">${i + 1}</td>
+            <td>${esc(p.Titel)}</td>
+            <td><span class="badge badge--accent">${esc(p.Kategorie || '—')}</span></td>
+            <td class="mono">${Object.keys(p.Bilder || {}).length}</td>
+          </tr>`).join('');
+      }
+    }
+  } catch (err) {
+    showToast('Fehler beim Laden der Dashboard-Daten.', 'error');
+  }
+}
+</script>
+</body>
+</html>
