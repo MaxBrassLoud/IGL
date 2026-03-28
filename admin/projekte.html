@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Projekte — Admin</title>
+  <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">S&amp;P</div>
+      <div class="sidebar-tag">Admin Panel</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Verwaltung</div>
+      <a href="/admin/" class="sidebar-link"><span class="icon">⬡</span> Dashboard</a>
+      <a href="/admin/anfragen" class="sidebar-link">
+        <span class="icon">✉</span> Anfragen
+        <span class="sidebar-badge" id="badge-anfragen" style="display:none">0</span>
+      </a>
+      <a href="/admin/projekte" class="sidebar-link active"><span class="icon">◈</span> Projekte</a>
+      <div class="sidebar-section-label" style="margin-top:1rem;">Website</div>
+      <a href="/" target="_blank" class="sidebar-link"><span class="icon">↗</span> Website ansehen</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">Eingeloggt als <strong id="sidebar-username">—</strong></div>
+      <button class="btn btn--ghost btn--sm" onclick="logout()">Abmelden</button>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="topbar">
+      <div class="topbar-title"><strong>Projekte</strong> <span>/ Bauvorhaben verwalten</span></div>
+      <div class="topbar-actions">
+        <button class="btn btn--primary btn--sm" onclick="openCreateModal()">+ Neues Projekt</button>
+        <button id="sidebar-toggle" class="btn btn--ghost btn--sm" style="display:none;" aria-label="Menü">☰</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <h1>Projekte</h1>
+        <p id="projekte-count">Wird geladen …</p>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <span class="table-title">Alle Bauvorhaben</span>
+          <input type="search" class="search-input" id="search-input" placeholder="Suchen …">
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px;">#</th>
+              <th>Titel</th>
+              <th>Kategorie</th>
+              <th>Bilder</th>
+              <th>Beschreibung</th>
+              <th style="width:120px;">Aktionen</th>
+            </tr>
+          </thead>
+          <tbody id="projekte-tbody">
+            <tr><td colspan="6" class="table-empty">Wird geladen …</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Projekt-Modal (Erstellen / Bearbeiten) ─────────────── -->
+<div class="modal-overlay" id="projekt-modal">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-header">
+      <h3 id="modal-title-text">Neues Projekt</h3>
+      <button class="btn btn--ghost btn--sm" onclick="closeModal('projekt-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-index">
+
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" for="f-titel">Titel *</label>
+          <input type="text" id="f-titel" class="form-input" placeholder="z.B. Wohnkomplex Am Stadtpark">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" for="f-kategorie">Kategorie *</label>
+          <select id="f-kategorie" class="form-select">
+            <option value="Hochbau">Hochbau</option>
+            <option value="Industriebau">Industriebau</option>
+            <option value="Sanierung">Sanierung</option>
+            <option value="Sonderbauwerk">Sonderbauwerk</option>
+            <option value="Infrastruktur">Infrastruktur</option>
+            <option value="Sonstiges">Sonstiges</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:1.2rem;">
+        <label class="form-label" for="f-beschreibung">Beschreibung *</label>
+        <textarea id="f-beschreibung" class="form-textarea" placeholder="Kurzbeschreibung des Bauvorhabens …" rows="4"></textarea>
+      </div>
+
+      <div class="form-group">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
+          <label class="form-label" style="margin:0;">Bilder (URL-Links)</label>
+          <button class="btn btn--ghost btn--sm" type="button" onclick="addImageRow()">+ Bild hinzufügen</button>
+        </div>
+        <div id="img-list" class="img-list"></div>
+        <p style="font-size:.75rem;color:var(--a-text-dim);margin-top:.4rem;">
+          Direkte Bild-URLs vom Server, z.B. <code style="font-family:var(--a-ff-mono);">https://example.com/bild.jpg</code>
+        </p>
+      </div>
+
+      <div id="modal-error" style="display:none;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:var(--a-red);font-size:.82rem;padding:.75rem 1rem;border-radius:3px;margin-top:.5rem;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn--ghost" onclick="closeModal('projekt-modal')">Abbrechen</button>
+      <button class="btn btn--primary" id="modal-save-btn" onclick="saveProjekt()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <h4 id="confirm-title">Sicher?</h4>
+    <p id="confirm-msg"></p>
+    <div class="confirm-actions">
+      <button class="btn btn--ghost" id="confirm-no">Abbrechen</button>
+      <button class="btn btn--danger" id="confirm-yes">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/admin.js"></script>
+<script>
+let projekte = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!requireAuth()) return;
+  if (window.innerWidth <= 900) document.getElementById('sidebar-toggle').style.display = 'inline-flex';
+  const stored = sessionStorage.getItem('sp_admin_user');
+  if (stored) document.getElementById('sidebar-username').textContent = stored;
+
+  await loadProjekte();
+  updateSidebarBadges();
+
+  document.getElementById('search-input').addEventListener('input', renderTable);
+});
+
+async function loadProjekte() {
+  try {
+    const res = await apiFetch('/api/projekte');
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    projekte = data.Bauvorhaben || [];
+    renderTable();
+  } catch {
+    document.getElementById('projekte-tbody').innerHTML =
+      '<tr><td colspan="6" class="table-empty">Fehler beim Laden.</td></tr>';
+  }
+}
+
+function renderTable() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  let data = projekte;
+  if (search) data = data.filter(p =>
+    (p.Titel + p.Beschreibung + p.Kategorie).toLowerCase().includes(search)
+  );
+
+  document.getElementById('projekte-count').textContent =
+    `${projekte.length} Projekt(e) insgesamt`;
+
+  const tbody = document.getElementById('projekte-tbody');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="table-empty">Keine Projekte gefunden.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map((p, i) => {
+    const realIdx = projekte.indexOf(p);
+    const bildCount = Object.keys(p.Bilder || {}).length;
+    const desc = p.Beschreibung ? (p.Beschreibung.length > 60 ? p.Beschreibung.slice(0, 60) + '…' : p.Beschreibung) : '—';
+    return `
+      <tr>
+        <td class="mono">${realIdx + 1}</td>
+        <td style="font-weight:600;color:var(--a-heading)">${esc(p.Titel)}</td>
+        <td><span class="badge badge--accent">${esc(p.Kategorie || '—')}</span></td>
+        <td class="mono">${bildCount} Bild${bildCount !== 1 ? 'er' : ''}</td>
+        <td style="color:var(--a-text-dim);font-size:.84rem;">${esc(desc)}</td>
+        <td>
+          <div class="action-group">
+            <button class="btn btn--ghost btn--sm" onclick="openEditModal(${realIdx})" title="Bearbeiten">✎</button>
+            <button class="btn btn--danger btn--sm" onclick="deleteProjekt(${realIdx})" title="Löschen">✕</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+/* ── Create ──────────────────────────────────────────────────── */
+function openCreateModal() {
+  document.getElementById('modal-title-text').textContent = 'Neues Projekt';
+  document.getElementById('edit-index').value = '';
+  document.getElementById('f-titel').value = '';
+  document.getElementById('f-kategorie').value = 'Hochbau';
+  document.getElementById('f-beschreibung').value = '';
+  document.getElementById('modal-error').style.display = 'none';
+  resetImageList([]);
+  document.getElementById('projekt-modal').classList.add('open');
+}
+
+/* ── Edit ────────────────────────────────────────────────────── */
+function openEditModal(idx) {
+  const p = projekte[idx];
+  document.getElementById('modal-title-text').textContent = 'Projekt bearbeiten';
+  document.getElementById('edit-index').value = idx;
+  document.getElementById('f-titel').value = p.Titel;
+  document.getElementById('f-kategorie').value = p.Kategorie || 'Hochbau';
+  document.getElementById('f-beschreibung').value = p.Beschreibung;
+  document.getElementById('modal-error').style.display = 'none';
+  resetImageList(Object.values(p.Bilder || {}));
+  document.getElementById('projekt-modal').classList.add('open');
+}
+
+/* ── Image rows ──────────────────────────────────────────────── */
+function resetImageList(urls) {
+  const list = document.getElementById('img-list');
+  list.innerHTML = '';
+  if (urls.length === 0) {
+    addImageRow();
+  } else {
+    urls.forEach(url => addImageRow(url));
+  }
+}
+
+function addImageRow(value = '') {
+  const list = document.getElementById('img-list');
+  const row = document.createElement('div');
+  row.className = 'img-row';
+  row.innerHTML = `
+    <input type="url" class="form-input img-url" placeholder="https://example.com/bild.jpg" value="${esc(value)}">
+    <button class="btn btn--danger btn--sm" type="button" onclick="this.parentElement.remove()" title="Entfernen">✕</button>`;
+  list.appendChild(row);
+  row.querySelector('input').focus();
+}
+
+/* ── Save ────────────────────────────────────────────────────── */
+async function saveProjekt() {
+  const errEl = document.getElementById('modal-error');
+  errEl.style.display = 'none';
+
+  const titel = document.getElementById('f-titel').value.trim();
+  const kategorie = document.getElementById('f-kategorie').value;
+  const beschreibung = document.getElementById('f-beschreibung').value.trim();
+  const bildUrls = [...document.querySelectorAll('.img-url')]
+    .map(i => i.value.trim())
+    .filter(Boolean);
+
+  if (!titel) { showError('Titel ist erforderlich.'); return; }
+  if (!beschreibung) { showError('Beschreibung ist erforderlich.'); return; }
+
+  const bilder = {};
+  bildUrls.forEach((url, i) => { bilder[`Bild_${String.fromCharCode(65 + i)}`] = url; });
+
+  const projekt = { Titel: titel, Kategorie: kategorie, Beschreibung: beschreibung, Bilder: bilder };
+
+  const editIdx = document.getElementById('edit-index').value;
+  const isEdit = editIdx !== '';
+  const idx = isEdit ? parseInt(editIdx) : -1;
+
+  const btn = document.getElementById('modal-save-btn');
+  btn.textContent = 'Speichern …';
+  btn.disabled = true;
+
+  try {
+    let res;
+    if (isEdit) {
+      res = await apiFetch(`/api/admin/projekte/${idx}`, {
+        method: 'PUT',
+        body: JSON.stringify(projekt)
+      });
+    } else {
+      res = await apiFetch('/api/admin/projekte', {
+        method: 'POST',
+        body: JSON.stringify(projekt)
+      });
+    }
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Unbekannter Fehler');
+    }
+
+    closeModal('projekt-modal');
+    await loadProjekte();
+    showToast(isEdit ? 'Projekt aktualisiert.' : 'Projekt erstellt.', 'success');
+  } catch (err) {
+    showError(err.message);
+  } finally {
+    btn.textContent = 'Speichern';
+    btn.disabled = false;
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('modal-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+/* ── Delete ──────────────────────────────────────────────────── */
+async function deleteProjekt(idx) {
+  const p = projekte[idx];
+  const ok = await showConfirm(
+    'Projekt löschen?',
+    `"${p.Titel}" wird dauerhaft gelöscht.`
+  );
+  if (!ok) return;
+  try {
+    const res = await apiFetch(`/api/admin/projekte/${idx}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error();
+    await loadProjekte();
+    showToast('Projekt gelöscht.', 'success');
+  } catch {
+    showToast('Fehler beim Löschen.', 'error');
+  }
+}
+
+/* ── Helpers ─────────────────────────────────────────────────── */
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.getElementById('projekt-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal('projekt-modal');
+});
+</script>
+</body>
+</html>
