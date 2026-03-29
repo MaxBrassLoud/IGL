@@ -1,21 +1,39 @@
 """
-Schreiber & Partner Ingenieurbüro — Flask Webserver & API
+IG Ludwig — Flask Webserver & API
 Öffentliche API + vollständiges Admin-Panel mit Auth
+Neu: Bild-Upload für Projekte und Kontaktformular
 """
 
 from flask import Flask, send_from_directory, jsonify, request
-import json, os, secrets
+import json, os, secrets, re
 from datetime import datetime
 from functools import wraps
 
+# Pillow für Bildverarbeitung (pip install Pillow)
+try:
+    from PIL import Image
+    import io
+    PILLOW_AVAILABLE = True
+except ImportError:
+    PILLOW_AVAILABLE = False
+    print("[WARN] Pillow nicht installiert – Bildoptimierung deaktiviert. pip install Pillow")
+
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 
-# ── Konfiguration (vor Produktion ändern!) ───────────────────
-ADMIN_USERNAME = 'admin'
-ADMIN_PASSWORD = 'admin123'
-KONTAKT_FILE   = 'kontaktanfragen.json'
-PROJEKTE_FILE  = 'projekte.json'
+# ── Konfiguration ────────────────────────────────────────────
+ADMIN_USERNAME   = 'admin'
+ADMIN_PASSWORD   = 'admin123'
+KONTAKT_FILE     = 'kontaktanfragen.json'
+PROJEKTE_FILE    = 'projekte.json'
+IMG_PROJEKTE_DIR = 'img/projekte'
+IMG_UPLOADS_DIR  = 'img/uploads'
+MAX_UPLOAD_MB    = 2           # Max Dateigröße für Kontakt-Uploads
+MAX_IMG_SIDE     = 2000        # Maximale Seite in Pixel nach Resize
 active_sessions: dict = {}
+
+# Ordner anlegen falls nicht vorhanden
+os.makedirs(IMG_PROJEKTE_DIR, exist_ok=True)
+os.makedirs(IMG_UPLOADS_DIR, exist_ok=True)
 
 # ── JSON-Helpers ─────────────────────────────────────────────
 def load_json(path, default):
@@ -47,6 +65,51 @@ def load_projekte():
 
 def save_projekte(liste): save_json(PROJEKTE_FILE, {'Bauvorhaben': liste})
 
+# ── Bild-Helpers ─────────────────────────────────────────────
+ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def safe_filename(name, ext='png'):
+    """Erzeugt einen sicheren Dateinamen aus einem beliebigen String."""
+    name = re.sub(r'[^\w\s-]', '', name.strip())
+    name = re.sub(r'[\s]+', '_', name)
+    name = name[:60]  # Länge begrenzen
+    return f"{name}.{ext}"
+
+def process_and_save_image(file_bytes, save_path, max_side=MAX_IMG_SIDE):
+    """
+    Verarbeitet ein hochgeladenes Bild:
+    - Entfernt EXIF/Metadaten
+    - Skaliert auf max_side herunter (behält Seitenverhältnis)
+    - Speichert als verlustfreies PNG
+    Gibt True bei Erfolg zurück, False bei Fehler.
+    """
+    if not PILLOW_AVAILABLE:
+        # Pillow nicht verfügbar – Rohbytes einfach speichern
+        with open(save_path, 'wb') as f:
+            f.write(file_bytes)
+        return True
+    try:
+        img = Image.open(io.BytesIO(file_bytes))
+        # In RGB konvertieren (entfernt auch Alpha-Kanal-Probleme)
+        if img.mode not in ('RGB', 'L'):
+            img = img.convert('RGB')
+        # Herunterskalieren falls nötig
+        if max(img.size) > max_side:
+            img.thumbnail((max_side, max_side), Image.LANCZOS)
+        # Neu erstellen ohne Metadaten
+        clean = Image.new(img.mode, img.size)
+        clean.putdata(list(img.getdata()))
+        # Als verlustfreies PNG speichern
+        png_path = os.path.splitext(save_path)[0] + '.png'
+        clean.save(png_path, format='PNG', optimize=True)
+        return True, png_path
+    except Exception as e:
+        print(f"[IMG] Fehler bei Verarbeitung: {e}")
+        return False, None
+
 # ── Auth Decorator ───────────────────────────────────────────
 def require_admin(f):
     @wraps(f)
@@ -56,6 +119,17 @@ def require_admin(f):
             return jsonify({'error': 'Nicht autorisiert'}), 401
         return f(*args, **kwargs)
     return decorated
+
+# ════════════════════════════════════════════════════════════
+# STATISCHE BILD-ROUTES
+# ════════════════════════════════════════════════════════════
+@app.route('/img/projekte/<path:filename>')
+def serve_projekt_img(filename):
+    return send_from_directory(IMG_PROJEKTE_DIR, filename)
+
+@app.route('/img/uploads/<path:filename>')
+def serve_upload_img(filename):
+    return send_from_directory(IMG_UPLOADS_DIR, filename)
 
 # ════════════════════════════════════════════════════════════
 # ÖFFENTLICHE SEITEN
@@ -99,19 +173,62 @@ def api_projekte():
 
 @app.route('/api/kontakt', methods=['POST'])
 def api_kontakt():
-    data = request.get_json(silent=True)
-    if not data: return jsonify({'error': 'Kein JSON-Body'}), 400
-    missing = [f for f in ['name','email','nachricht'] if not data.get(f,'').strip()]
-    if missing: return jsonify({'error': f'Fehlende Felder: {", ".join(missing)}'}), 422
+    """
+    Nimmt multipart/form-data entgegen (optional Bilder).
+    Felder: name, email, telefon, betreff, nachricht, datenschutz
+    Dateien: anhang_* (optional, max 2MB/Datei, max 5 Dateien)
+    """
+    # Multipart oder JSON?
+    if request.content_type and 'multipart/form-data' in request.content_type:
+        data = request.form
+        files = request.files.getlist('anhang')
+    else:
+        data = request.get_json(silent=True) or {}
+        files = []
+
+    missing = [f for f in ['name', 'email', 'nachricht'] if not data.get(f, '').strip()]
+    if missing:
+        return jsonify({'error': f'Fehlende Felder: {", ".join(missing)}'}), 422
+
+    name = data.get('name', '').strip()
+
+    # Bilder verarbeiten
+    saved_images = []
+    if files:
+        # Zielordner nach Name anlegen
+        folder_name = re.sub(r'\s+', '_', re.sub(r'[^\w\s-]', '', name))[:60]
+        target_dir = os.path.join(IMG_UPLOADS_DIR, folder_name)
+        os.makedirs(target_dir, exist_ok=True)
+
+        max_files = 5
+        for i, f in enumerate(files[:max_files]):
+            if not f or not f.filename:
+                continue
+            if not allowed_file(f.filename):
+                continue
+            raw = f.read()
+            if len(raw) > MAX_UPLOAD_MB * 1024 * 1024:
+                continue  # Zu groß – überspringen
+
+            base_name = f"anhang_{i+1}"
+            tmp_path = os.path.join(target_dir, base_name + '.png')
+            ok, final_path = process_and_save_image(raw, tmp_path)
+            if ok and final_path:
+                # Relative URL für die Datenbank
+                rel = '/' + final_path.replace('\\', '/')
+                saved_images.append(rel)
+
     anfragen = load_kontaktanfragen()
     eintrag = {
-        'id': len(anfragen)+1, 'gelesen': False,
+        'id':        len(anfragen) + 1,
+        'gelesen':   False,
         'timestamp': data.get('timestamp', datetime.now().isoformat()),
-        **{k: data.get(k,'').strip() for k in ['name','email','telefon','betreff','nachricht']}
+        'bilder':    saved_images,
+        **{k: data.get(k, '').strip() for k in ['name', 'email', 'telefon', 'betreff', 'nachricht']}
     }
     anfragen.append(eintrag)
     save_kontaktanfragen(anfragen)
-    print(f"[KONTAKT] #{eintrag['id']} von {eintrag['name']}")
+    print(f"[KONTAKT] #{eintrag['id']} von {eintrag['name']} | {len(saved_images)} Bild(er)")
     return jsonify({'success': True, 'id': eintrag['id']}), 201
 
 # ════════════════════════════════════════════════════════════
@@ -145,7 +262,7 @@ def api_admin_stats():
         'anfragen_gesamt':    len(anfragen),
         'anfragen_ungelesen': sum(1 for a in anfragen if not a.get('gelesen')),
         'projekte':           len(projekte),
-        'kategorien':         len(set(p.get('Kategorie','') for p in projekte))
+        'kategorien':         len(set(p.get('Kategorie', '') for p in projekte))
     })
 
 # ════════════════════════════════════════════════════════════
@@ -154,7 +271,7 @@ def api_admin_stats():
 @app.route('/api/admin/anfragen', methods=['GET'])
 @require_admin
 def api_admin_anfragen_list():
-    anfragen = sorted(load_kontaktanfragen(), key=lambda a: a.get('timestamp',''), reverse=True)
+    anfragen = sorted(load_kontaktanfragen(), key=lambda a: a.get('timestamp', ''), reverse=True)
     limit = request.args.get('limit', type=int)
     return jsonify(anfragen[:limit] if limit else anfragen)
 
@@ -203,10 +320,14 @@ def api_projekt_create():
     if not data.get('Titel') or not data.get('Beschreibung'):
         return jsonify({'error': 'Titel und Beschreibung erforderlich'}), 422
     projekte = load_projekte()
-    projekte.append({'Titel':data['Titel'].strip(),'Beschreibung':data['Beschreibung'].strip(),
-                     'Kategorie':data.get('Kategorie','Sonstiges').strip(),'Bilder':data.get('Bilder',{})})
+    projekte.append({
+        'Titel':       data['Titel'].strip(),
+        'Beschreibung':data['Beschreibung'].strip(),
+        'Kategorie':   data.get('Kategorie', 'Sonstiges').strip(),
+        'Bilder':      data.get('Bilder', {})
+    })
     save_projekte(projekte)
-    return jsonify({'success': True, 'index': len(projekte)-1}), 201
+    return jsonify({'success': True, 'index': len(projekte) - 1}), 201
 
 @app.route('/api/admin/projekte/<int:idx>', methods=['PUT'])
 @require_admin
@@ -216,9 +337,12 @@ def api_projekt_update(idx):
     data = request.get_json(silent=True) or {}
     if not data.get('Titel') or not data.get('Beschreibung'):
         return jsonify({'error': 'Titel und Beschreibung erforderlich'}), 422
-    projekte[idx] = {'Titel':data['Titel'].strip(),'Beschreibung':data['Beschreibung'].strip(),
-                     'Kategorie':data.get('Kategorie',projekte[idx].get('Kategorie','Sonstiges')).strip(),
-                     'Bilder':data.get('Bilder',projekte[idx].get('Bilder',{}))}
+    projekte[idx] = {
+        'Titel':       data['Titel'].strip(),
+        'Beschreibung':data['Beschreibung'].strip(),
+        'Kategorie':   data.get('Kategorie', projekte[idx].get('Kategorie', 'Sonstiges')).strip(),
+        'Bilder':      data.get('Bilder', projekte[idx].get('Bilder', {}))
+    }
     save_projekte(projekte)
     return jsonify({'success': True})
 
@@ -231,6 +355,36 @@ def api_projekt_delete(idx):
     save_projekte(projekte)
     return jsonify({'success': True})
 
+@app.route('/api/admin/projekte/upload-bild', methods=['POST'])
+@require_admin
+def api_projekt_upload_bild():
+    """
+    Nimmt ein einzelnes Bild entgegen, verarbeitet es und speichert es
+    unter img/projekte/<timestamp>_<originalname>.png
+    Gibt die URL zurück.
+    """
+    if 'bild' not in request.files:
+        return jsonify({'error': 'Kein Bild übermittelt'}), 400
+    f = request.files['bild']
+    if not f or not f.filename:
+        return jsonify({'error': 'Leere Datei'}), 400
+    if not allowed_file(f.filename):
+        return jsonify({'error': 'Dateityp nicht erlaubt'}), 400
+
+    raw = f.read()
+    # Für Admin-Uploads kein Größenlimit (nur Client-seitige Warnung)
+    ts = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+    orig = re.sub(r'[^\w.-]', '_', f.filename.rsplit('.', 1)[0])[:40]
+    filename = f"{ts}_{orig}.png"
+    save_path = os.path.join(IMG_PROJEKTE_DIR, filename)
+
+    ok, final_path = process_and_save_image(raw, save_path, max_side=3000)
+    if not ok:
+        return jsonify({'error': 'Bildverarbeitung fehlgeschlagen'}), 500
+
+    url = '/' + final_path.replace('\\', '/')
+    return jsonify({'success': True, 'url': url, 'filename': filename})
+
 # ════════════════════════════════════════════════════════════
 # FEHLERSEITEN
 # ════════════════════════════════════════════════════════════
@@ -242,10 +396,12 @@ def server_error(e): return send_from_directory('.', '500.html'), 500
 
 if __name__ == '__main__':
     print("╔══════════════════════════════════════════════════╗")
-    print("║   Schreiber & Partner Ingenieurbüro — Server    ║")
+    print("║        IG Ludwig — Flask Server                 ║")
     print("╠══════════════════════════════════════════════════╣")
     print("║   Website:  http://localhost:5000               ║")
     print("║   Admin:    http://localhost:5000/admin/        ║")
     print("║   Login:    admin / admin123                    ║")
+    if not PILLOW_AVAILABLE:
+        print("║   [!] Pillow fehlt: pip install Pillow          ║")
     print("╚══════════════════════════════════════════════════╝")
     app.run(debug=True, host='0.0.0.0', port=5000)
