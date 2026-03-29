@@ -3,25 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Über Schreiber & Partner Ingenieure – unser Team, unsere Geschichte und unsere Werte.">
-  <title>Über uns — Schreiber & Partner Ingenieure</title>
-  <link rel="stylesheet" href="static/css/main.css">
+  <meta name="description" content="Über IG Ludwig – unser Team, unsere Geschichte seit 1963 und unsere Werte.">
+  <title>Über uns — IG Ludwig</title>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <style>
+    /* Zeitleiste */
+    .timeline { position:relative; padding-left:2rem; }
+    .timeline::before { content:''; position:absolute; left:0; top:0; bottom:0; width:2px; background:var(--col-border); }
+    .timeline-item { position:relative; padding-bottom:2.5rem; }
+    .timeline-item::before { content:''; position:absolute; left:-2.45rem; top:.35rem; width:12px; height:12px; border-radius:50%; background:var(--col-accent); border:2px solid var(--col-bg); }
+    .timeline-year { font-family:var(--ff-display); font-size:1.6rem; color:var(--col-accent); line-height:1; margin-bottom:.25rem; }
+    .timeline-text { font-size:.92rem; color:var(--col-muted); }
+  </style>
 </head>
 <body>
 
 <nav class="site-nav" role="navigation" aria-label="Hauptnavigation">
   <div class="container">
-    <a href="/" class="nav-logo" aria-label="Startseite">
-      <span class="nav-logo-mark">S&amp;P</span>
-      <span class="nav-logo-tag">Ingenieure</span>
+    <a href="/" class="nav-logo" aria-label="IG Ludwig – Startseite">
+      <span class="nav-logo-mark">IG Ludwig</span>
+      <span class="nav-logo-tag">Ingenieurbüro TGA</span>
     </a>
     <ul class="nav-links" role="list">
       <li><a href="/">Startseite</a></li>
       <li><a href="/ueber-uns">Über uns</a></li>
-      <li><a href="/projekte">Projekte</a></li>
+      <li><a href="/projekte">Unsere Projekte</a></li>
       <li><a href="/kontakt">Kontakt</a></li>
     </ul>
-    <a href="/kontakt" class="btn btn--primary nav-cta">Kontakt aufnehmen</a>
+    <a href="/kontakt" class="btn btn--primary nav-cta">Projekt anfragen</a>
     <button class="nav-hamburger" aria-label="Menü öffnen" aria-expanded="false" aria-controls="mobile-menu">
       <span></span><span></span><span></span>
     </button>
@@ -30,77 +39,128 @@
 <div class="mobile-menu" id="mobile-menu">
   <a href="/">Startseite</a>
   <a href="/ueber-uns">Über uns</a>
-  <a href="/projekte">Projekte</a>
+  <a href="/projekte">Unsere Projekte</a>
   <a href="/kontakt">Kontakt</a>
 </div>
 
 <main class="page-body">
 
-  <!-- ── Hero ──────────────────────────────────────────────── -->
   <div class="page-hero">
     <div class="container">
       <p class="label page-hero-label">— Wer wir sind</p>
       <h1>Über uns</h1>
-      <p class="page-hero-sub">Seit über 30 Jahren planen und realisieren wir Bauvorhaben mit Leidenschaft, Präzision und dem Anspruch, dauerhaft Werte zu schaffen.</p>
+      <p class="page-hero-sub">In unseren Projekten gehen wir auf die Wünsche unserer Kunden ein, beraten sie professionell und garantieren den größtmöglichen Projekterfolg.</p>
     </div>
   </div>
 
-  <!-- ── Geschichte ────────────────────────────────────────── -->
+  <!-- ── Intro ──────────────────────────────────────────────── -->
   <section class="section">
     <div class="container">
       <div class="grid-2" style="align-items:center;gap:5rem;">
         <div data-reveal>
           <span class="accent-line"></span>
-          <p class="label">Unsere Geschichte</p>
-          <h2 style="margin-bottom:1.2rem;">Gegründet 1994 in München</h2>
-          <p style="margin-bottom:1rem;">Das Büro wurde 1994 von Dipl.-Ing. Friedrich Schreiber gegründet, mit dem Ziel, Ingenieursleistungen auf höchstem fachlichen Niveau anzubieten. Was als Ein-Mann-Büro begann, ist heute ein interdisziplinäres Team aus 18 Fachingenieurinnen und -ingenieuren.</p>
-          <p style="margin-bottom:1rem;">Im Jahr 2003 wurde die heutige Partnerschaft begründet, als Dipl.-Ing. Ursula Brenner als gleichberechtigte Partnerin in das Unternehmen eintrat. Seitdem trägt das Büro den Namen Schreiber & Partner.</p>
-          <p>Wir sind Mitglied der Bayerischen Ingenieurekammer-Bau und arbeiten nach den Leistungsphasen der HOAI.</p>
+          <p class="label">Unsere Philosophie</p>
+          <h2 style="margin-bottom:1.2rem;">Ihr Maßanzug für jedes Projekt</h2>
+          <p style="margin-bottom:1rem;">Wir betreuen unsere Kunden auch nach der Übergabe der Anlagen, wir helfen, die Anlagen weiter zu optimieren und das wirtschaftlichste Maximum herauszuholen.</p>
+          <p style="margin-bottom:1rem;">Die maximale Einsparung von Energie hilft für den wirtschaftlichen Erfolg eines Unternehmens, fördert die Umweltbilanz und hilft Kosten zu sparen.</p>
+          <p>Es ist für uns kein Problem, etwas Ungewöhnliches zu bauen, das sich von anderen unterscheidet. Wir haben über 2.500 erfolgreiche Projekte, die für jeden Kunden individuell sind, umgesetzt.</p>
         </div>
-        <div data-reveal data-reveal-delay="120" style="background:var(--col-surface);border:1px solid var(--col-border);padding:3rem;border-radius:2px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;text-align:center;">
-            <div>
-              <div style="font-family:var(--ff-display);font-size:3.5rem;color:var(--col-accent);line-height:1;">1994</div>
-              <div class="label" style="margin-top:.5rem;">Gründungsjahr</div>
-            </div>
-            <div>
-              <div style="font-family:var(--ff-display);font-size:3.5rem;color:var(--col-accent);line-height:1;">18</div>
-              <div class="label" style="margin-top:.5rem;">Mitarbeiter</div>
-            </div>
-            <div>
-              <div style="font-family:var(--ff-display);font-size:3.5rem;color:var(--col-accent);line-height:1;">420+</div>
-              <div class="label" style="margin-top:.5rem;">Projekte</div>
-            </div>
-            <div>
-              <div style="font-family:var(--ff-display);font-size:3.5rem;color:var(--col-accent);line-height:1;">6</div>
-              <div class="label" style="margin-top:.5rem;">Fachabteilungen</div>
-            </div>
-          </div>
+        <div data-reveal data-reveal-delay="100" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+          <img src="https://i0.wp.com/ig-ludwig.de/wp-content/uploads/2020/02/Badylon-018-scaled.jpg?resize=1170%2C650&ssl=1"
+               alt="Referenzprojekt Badylon" loading="lazy"
+               style="width:100%;height:160px;object-fit:cover;border-radius:2px;">
+          <img src="https://i0.wp.com/ig-ludwig.de/wp-content/uploads/2020/09/innen2.jpg?resize=1170%2C650&ssl=1"
+               alt="Innenaufnahme Referenzprojekt" loading="lazy"
+               style="width:100%;height:160px;object-fit:cover;border-radius:2px;margin-top:1.5rem;">
+          <img src="https://i0.wp.com/ig-ludwig.de/wp-content/uploads/2020/09/innen.jpg?resize=1170%2C650&ssl=1"
+               alt="Innenaufnahme" loading="lazy"
+               style="width:100%;height:160px;object-fit:cover;border-radius:2px;margin-top:-1.5rem;">
+          <img src="https://i0.wp.com/ig-ludwig.de/wp-content/uploads/2020/09/Hohenkammer2.jpg?resize=1170%2C650&ssl=1"
+               alt="Hohenkammer Referenzprojekt" loading="lazy"
+               style="width:100%;height:160px;object-fit:cover;border-radius:2px;">
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── Werte ─────────────────────────────────────────────── -->
+  <!-- ── Stats ─────────────────────────────────────────────── -->
+  <div class="stats-strip">
+    <div class="container">
+      <div class="stats-grid">
+        <div data-reveal>
+          <div class="stat-number">1963</div>
+          <div class="stat-label">Gründungsjahr</div>
+        </div>
+        <div data-reveal data-reveal-delay="80">
+          <div class="stat-number">2.500+</div>
+          <div class="stat-label">Projekte im In- & Ausland</div>
+        </div>
+        <div data-reveal data-reveal-delay="160">
+          <div class="stat-number">16</div>
+          <div class="stat-label">Ingenieure & Techniker</div>
+        </div>
+        <div data-reveal data-reveal-delay="240">
+          <div class="stat-number">40+</div>
+          <div class="stat-label">Jahre Erfahrung</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Firmengeschichte / Zeitleiste ─────────────────────── -->
   <section class="section section--surface">
     <div class="container">
       <div style="margin-bottom:3.5rem;" data-reveal>
         <span class="accent-line"></span>
-        <p class="label">Was uns antreibt</p>
-        <h2>Unsere Werte</h2>
+        <p class="label">Von der Gründung bis heute</p>
+        <h2>Unsere Geschichte</h2>
       </div>
-      <div class="grid-3">
-        <div data-reveal style="border-left:3px solid var(--col-accent);padding-left:1.5rem;">
-          <h3 style="font-size:1.6rem;margin-bottom:.75rem;">Präzision</h3>
-          <p style="font-size:.92rem;color:var(--col-muted);">Jede Berechnung, jede Zeichnung, jeder Plan trägt unsere Handschrift. Wir arbeiten sorgfältig, gründlich und mit dem Blick für das Detail.</p>
+      <div class="grid-2" style="gap:5rem;align-items:start;">
+        <div class="timeline" data-reveal>
+          <div class="timeline-item">
+            <div class="timeline-year">1963</div>
+            <div class="timeline-text">Firmengründung durch Kurt Lindlacher</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-year">1980</div>
+            <div class="timeline-text">Einstieg von Peter Ludwig</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-year">1984</div>
+            <div class="timeline-text">Übernahme durch Peter Ludwig und Umzug in die Leonrodstraße in Traunstein</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-year">1993</div>
+            <div class="timeline-text">Umfirmierung: Planungsgesellschaft Peter Ludwig mbH</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-year">1995</div>
+            <div class="timeline-text">Umzug in die Sonntagshornstraße in Traunstein</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-year">2000</div>
+            <div class="timeline-text">Umfirmierung: Ludwig Ingenieurgesellschaft für Technische Gebäudeausrüstung GmbH</div>
+          </div>
+          <div class="timeline-item" style="padding-bottom:0;">
+            <div class="timeline-year">2013</div>
+            <div class="timeline-text">Einstieg von Markus Pertl in die Geschäftsführung. Peter Ludwig verlässt die Geschäftsführung.</div>
+          </div>
         </div>
-        <div data-reveal data-reveal-delay="80" style="border-left:3px solid var(--col-accent);padding-left:1.5rem;">
-          <h3 style="font-size:1.6rem;margin-bottom:.75rem;">Verlässlichkeit</h3>
-          <p style="font-size:.92rem;color:var(--col-muted);">Termine und Budgets einhalten ist für uns keine Option — es ist Selbstverständlichkeit. Unsere Kunden können sich auf uns verlassen.</p>
-        </div>
-        <div data-reveal data-reveal-delay="160" style="border-left:3px solid var(--col-accent);padding-left:1.5rem;">
-          <h3 style="font-size:1.6rem;margin-bottom:.75rem;">Partnerschaft</h3>
-          <p style="font-size:.92rem;color:var(--col-muted);">Wir verstehen uns als Partner unserer Auftraggeber, nicht als bloße Dienstleister. Ihr Projekterfolg ist unser Ziel.</p>
+        <div data-reveal data-reveal-delay="100">
+          <img src="https://i0.wp.com/ig-ludwig.de/wp-content/uploads/2020/09/Signatur-Jubilaeum-final-V3.2.jpg?fit=750%2C173&ssl=1"
+               alt="IG Ludwig 40 Jahre Jubiläum"
+               style="width:100%;border-radius:2px;margin-bottom:2rem;"
+               loading="lazy">
+          <div style="padding:2rem;background:var(--col-white);border:1px solid var(--col-border);border-radius:2px;">
+            <p class="label" style="margin-bottom:.75rem;">Stellenausschreibung</p>
+            <p style="font-size:.9rem;color:var(--col-muted);margin-bottom:1rem;">
+              <strong style="color:var(--col-text);">Sie wollen unser Team bereichern?</strong><br>
+              Wir sind immer auf der Suche nach Ingenieuren, Technikern, Meistern und CAD-Fachkräften (m/w/d) aus dem Bereich H/S/L, Klima, Kälte, Brandschutz und MSR.
+            </p>
+            <a href="mailto:info@ig-ludwig.de" class="btn btn--outline" style="font-size:.72rem;">
+              Jetzt bewerben → info@ig-ludwig.de
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -112,54 +172,43 @@
       <div style="margin-bottom:3.5rem;" data-reveal>
         <span class="accent-line"></span>
         <p class="label">Die Menschen dahinter</p>
-        <h2>Unser Team</h2>
+        <h2>Team & Geschäftsführung</h2>
+        <p style="margin-top:.75rem;max-width:60ch;">Wir sind ein Team von 16 Ingenieuren, Technikern, Konstrukteuren und Assistenten mit einer Erfahrung von mehr als 2.500 erfolgreich umgesetzten Projekten im In- und Ausland.</p>
       </div>
-      <div class="team-grid">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:3rem;max-width:700px;">
         <div class="team-card" data-reveal>
-          <div class="team-avatar" style="background:var(--col-surface);border-radius:50%;width:120px;height:120px;display:flex;align-items:center;justify-content:center;font-family:var(--ff-display);font-size:2.5rem;color:var(--col-accent);margin-inline:auto;margin-bottom:1.2rem;">FS</div>
-          <div class="team-name">Dipl.-Ing. Friedrich Schreiber</div>
-          <div class="team-role">Gründer & Geschäftsführer</div>
+          <img src="https://i0.wp.com/ig-ludwig.de/wp-content/uploads/2020/08/DL-sw2.jpg?fit=330%2C480&ssl=1"
+               alt="Daniela Ludwig, Geschäftsführerin"
+               class="team-avatar" style="width:140px;height:180px;border-radius:2px;object-fit:cover;object-position:top;">
+          <div class="team-name" style="margin-top:1rem;">Daniela Ludwig</div>
+          <div class="team-role">Geschäftsführerin</div>
+          <p style="font-size:.82rem;color:var(--col-muted);margin-top:.5rem;line-height:1.5;">
+            MBA&amp;E<br>
+            Dipl. Ing. (FH) Versorgungstechnik<br>
+            Dipl. Wirtschaftsing. (FH)
+          </p>
         </div>
-        <div class="team-card" data-reveal data-reveal-delay="60">
-          <div class="team-avatar" style="background:var(--col-surface);border-radius:50%;width:120px;height:120px;display:flex;align-items:center;justify-content:center;font-family:var(--ff-display);font-size:2.5rem;color:var(--col-accent);margin-inline:auto;margin-bottom:1.2rem;">UB</div>
-          <div class="team-name">Dipl.-Ing. Ursula Brenner</div>
-          <div class="team-role">Partnerin & Projektleiterin</div>
-        </div>
-        <div class="team-card" data-reveal data-reveal-delay="120">
-          <div class="team-avatar" style="background:var(--col-surface);border-radius:50%;width:120px;height:120px;display:flex;align-items:center;justify-content:center;font-family:var(--ff-display);font-size:2.5rem;color:var(--col-accent);margin-inline:auto;margin-bottom:1.2rem;">MK</div>
-          <div class="team-name">M.Sc. Markus Kohler</div>
-          <div class="team-role">Leitender Tragwerksplaner</div>
-        </div>
-        <div class="team-card" data-reveal data-reveal-delay="180">
-          <div class="team-avatar" style="background:var(--col-surface);border-radius:50%;width:120px;height:120px;display:flex;align-items:center;justify-content:center;font-family:var(--ff-display);font-size:2.5rem;color:var(--col-accent);margin-inline:auto;margin-bottom:1.2rem;">SL</div>
-          <div class="team-name">B.Eng. Sandra Liebig</div>
-          <div class="team-role">Bauingenieurin & BIM-Koordination</div>
+        <div class="team-card" data-reveal data-reveal-delay="80">
+          <img src="https://i0.wp.com/ig-ludwig.de/wp-content/uploads/2020/09/MP-sw2.jpg?fit=330%2C480&ssl=1"
+               alt="Markus Pertl, Geschäftsführer"
+               class="team-avatar" style="width:140px;height:180px;border-radius:2px;object-fit:cover;object-position:top;">
+          <div class="team-name" style="margin-top:1rem;">Markus Pertl</div>
+          <div class="team-role">Geschäftsführer</div>
+          <p style="font-size:.82rem;color:var(--col-muted);margin-top:.5rem;line-height:1.5;">
+            Dipl. Ing. (FH) Versorgungstechnik<br>
+            Dipl. Wirtschaftsing. (TU)
+          </p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── Zertifikate / Memberships ─────────────────────────── -->
-  <section class="section section--dark">
+  <!-- ── CTA ───────────────────────────────────────────────── -->
+  <section class="section section--dark" style="text-align:center;">
     <div class="container">
-      <div style="margin-bottom:2.5rem;" data-reveal>
-        <span class="accent-line"></span>
-        <p class="label" style="color:var(--col-accent);">Qualifikationen</p>
-        <h2 style="color:var(--col-white);">Zertifizierungen & Mitgliedschaften</h2>
-      </div>
-      <div class="grid-3" style="gap:1.5rem;">
-        <div data-reveal style="padding:1.75rem;border:1px solid #2a2720;background:var(--col-dark-2);">
-          <div style="font-family:var(--ff-mono);font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--col-accent);margin-bottom:.75rem;">Mitglied</div>
-          <div style="font-size:1rem;font-weight:600;color:var(--col-white);">Bayerische Ingenieurekammer-Bau</div>
-        </div>
-        <div data-reveal data-reveal-delay="60" style="padding:1.75rem;border:1px solid #2a2720;background:var(--col-dark-2);">
-          <div style="font-family:var(--ff-mono);font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--col-accent);margin-bottom:.75rem;">Zertifiziert</div>
-          <div style="font-size:1rem;font-weight:600;color:var(--col-white);">ISO 9001:2015 Qualitätsmanagement</div>
-        </div>
-        <div data-reveal data-reveal-delay="120" style="padding:1.75rem;border:1px solid #2a2720;background:var(--col-dark-2);">
-          <div style="font-family:var(--ff-mono);font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--col-accent);margin-bottom:.75rem;">Zertifiziert</div>
-          <div style="font-size:1rem;font-weight:600;color:var(--col-white);">BIM-Anwendung (VDI 2552)</div>
-        </div>
+      <div data-reveal>
+        <h2 style="color:var(--col-white);margin-bottom:1rem;">Was immer Sie umsetzen wollen — wir freuen uns auf Ihre Anfrage.</h2>
+        <a href="/kontakt" class="btn btn--primary" style="margin-top:.5rem;">Kontakt aufnehmen <span class="arrow">→</span></a>
       </div>
     </div>
   </section>
@@ -170,15 +219,15 @@
   <div class="container">
     <div class="footer-inner">
       <div>
-        <div class="footer-brand-name">S&amp;P Ingenieure</div>
-        <p class="footer-desc">Schreiber & Partner Ingenieurbüro GmbH — Präzision, Verlässlichkeit und Ingenieurskunst seit 1994.</p>
+        <div class="footer-brand-name">IG Ludwig</div>
+        <p class="footer-desc">Ludwig Ingenieurgesellschaft für Technische Gebäudeausrüstung mbH — Seit mehr als 40 Jahren außergewöhnliche Projekte.</p>
       </div>
       <div>
         <div class="footer-col-title">Navigation</div>
         <ul class="footer-links">
           <li><a href="/">Startseite</a></li>
           <li><a href="/ueber-uns">Über uns</a></li>
-          <li><a href="/projekte">Projekte</a></li>
+          <li><a href="/projekte">Unsere Projekte</a></li>
           <li><a href="/kontakt">Kontakt</a></li>
         </ul>
       </div>
@@ -193,15 +242,15 @@
       <div>
         <div class="footer-col-title">Kontakt</div>
         <ul class="footer-links">
-          <li>Musterstraße 12</li>
-          <li>80333 München</li>
-          <li><a href="tel:+498912345678">+49 89 12345678</a></li>
-          <li><a href="mailto:info@sp-ingenieure.de">info@sp-ingenieure.de</a></li>
+          <li>Sonntagshornstr. 6</li>
+          <li>83278 Traunstein</li>
+          <li><a href="tel:+4986198985-0">+49 (0) 861 / 989 85-0</a></li>
+          <li><a href="mailto:info@ig-ludwig.de">info@ig-ludwig.de</a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2025 Schreiber & Partner Ingenieurbüro GmbH. Alle Rechte vorbehalten.</span>
+      <span>© 2025 Ludwig Ingenieurgesellschaft für Technische Gebäudeausrüstung mbH</span>
       <div style="display:flex;gap:1.5rem;">
         <a href="/impressum">Impressum</a>
         <a href="/datenschutz">Datenschutz</a>
@@ -211,16 +260,14 @@
   </div>
 </footer>
 
-<div class="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie-Einwilligung">
-  <p class="cookie-banner-text">
-    Wir verwenden Cookies. Weitere Informationen in unserer <a href="/cookies">Cookie-Richtlinie</a>.
-  </p>
+<div class="cookie-banner" role="dialog" aria-live="polite">
+  <p class="cookie-banner-text">Wir verwenden Cookies. Weitere Informationen in unserer <a href="/cookies">Cookie-Richtlinie</a>.</p>
   <div class="cookie-actions">
     <button class="btn btn--outline-light" data-cookie-decline>Ablehnen</button>
     <button class="btn btn--primary" data-cookie-accept>Akzeptieren</button>
   </div>
 </div>
 
-<script src="static/js/main.js"></script>
+<script src="/static/js/main.js"></script>
 </body>
 </html>
