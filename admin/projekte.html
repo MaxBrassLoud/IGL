@@ -6,6 +6,146 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Projekte — Admin</title>
   <link rel="stylesheet" href="/static/css/admin.css">
+  <style>
+    /* ── Bild-Eingabe Erweiterung ─────────────────────────── */
+    .img-entry {
+      background: var(--a-surface-2);
+      border: 1px solid var(--a-border);
+      border-radius: var(--radius);
+      padding: .75rem;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      position: relative;
+    }
+    .img-entry-tabs {
+      display: flex;
+      gap: .4rem;
+      margin-bottom: .25rem;
+    }
+    .img-tab-btn {
+      font-family: var(--a-ff-mono);
+      font-size: .6rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: .25rem .6rem;
+      border-radius: 2px;
+      border: 1px solid var(--a-border-2);
+      color: var(--a-text-dim);
+      background: transparent;
+      cursor: pointer;
+      transition: .15s;
+    }
+    .img-tab-btn.active {
+      background: var(--a-accent);
+      border-color: var(--a-accent);
+      color: var(--a-bg);
+    }
+    .img-tab-panel { display: none; }
+    .img-tab-panel.active { display: flex; flex-direction: column; gap: .4rem; }
+
+    .img-upload-area {
+      border: 1.5px dashed var(--a-border-2);
+      border-radius: var(--radius);
+      padding: .75rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
+      position: relative;
+    }
+    .img-upload-area:hover,
+    .img-upload-area.drag-over {
+      border-color: var(--a-accent);
+      background: rgba(184,137,42,.05);
+    }
+    .img-upload-area input[type=file] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .img-upload-hint {
+      font-size: .75rem;
+      color: var(--a-text-dim);
+      pointer-events: none;
+    }
+    .img-upload-hint strong { color: var(--a-accent); }
+
+    .img-preview-wrap {
+      display: none;
+      align-items: center;
+      gap: .6rem;
+      margin-top: .25rem;
+    }
+    .img-preview-wrap.visible { display: flex; }
+    .img-preview-wrap img {
+      width: 52px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 2px;
+      border: 1px solid var(--a-border);
+    }
+    .img-preview-name {
+      font-family: var(--a-ff-mono);
+      font-size: .7rem;
+      color: var(--a-text-dim);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .img-upload-status {
+      font-family: var(--a-ff-mono);
+      font-size: .65rem;
+      padding: .2rem .5rem;
+      border-radius: 2px;
+    }
+    .img-upload-status.uploading { color: var(--a-yellow); background: rgba(251,191,36,.1); }
+    .img-upload-status.done      { color: var(--a-green);  background: rgba(74,222,128,.1); }
+    .img-upload-status.error     { color: var(--a-red);    background: rgba(248,113,113,.1); }
+
+    .img-entry-remove {
+      position: absolute;
+      top: .5rem;
+      right: .5rem;
+    }
+    .img-hidden-url { display: none; }
+
+    /* Vorschau-Galerie im Modal */
+    .existing-imgs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: .5rem;
+      margin-top: .5rem;
+    }
+    .existing-img-thumb {
+      position: relative;
+      border-radius: 2px;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      background: var(--a-surface-2);
+      border: 1px solid var(--a-border);
+    }
+    .existing-img-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .existing-img-thumb .del-thumb {
+      position: absolute;
+      top: 2px; right: 2px;
+      background: rgba(0,0,0,.65);
+      color: var(--a-red);
+      font-size: .65rem;
+      padding: 1px 5px;
+      border-radius: 2px;
+      cursor: pointer;
+      display: none;
+    }
+    .existing-img-thumb:hover .del-thumb { display: block; }
+  </style>
 </head>
 <body>
 
@@ -72,9 +212,9 @@
   </div>
 </div>
 
-<!-- ── Projekt-Modal (Erstellen / Bearbeiten) ─────────────── -->
+<!-- ── Projekt-Modal ──────────────────────────────────────── -->
 <div class="modal-overlay" id="projekt-modal">
-  <div class="modal" style="max-width:680px;">
+  <div class="modal" style="max-width:700px;">
     <div class="modal-header">
       <h3 id="modal-title-text">Neues Projekt</h3>
       <button class="btn btn--ghost btn--sm" onclick="closeModal('projekt-modal')">✕</button>
@@ -102,17 +242,25 @@
 
       <div class="form-group" style="margin-top:1.2rem;">
         <label class="form-label" for="f-beschreibung">Beschreibung *</label>
-        <textarea id="f-beschreibung" class="form-textarea" placeholder="Kurzbeschreibung des Bauvorhabens …" rows="4"></textarea>
+        <textarea id="f-beschreibung" class="form-textarea" placeholder="Kurzbeschreibung des Bauvorhabens …" rows="3"></textarea>
       </div>
 
+      <!-- Bilder-Sektion -->
       <div class="form-group">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
-          <label class="form-label" style="margin:0;">Bilder (URL-Links)</label>
-          <button class="btn btn--ghost btn--sm" type="button" onclick="addImageRow()">+ Bild hinzufügen</button>
+          <label class="form-label" style="margin:0;">Bilder</label>
+          <button class="btn btn--ghost btn--sm" type="button" onclick="addImageEntry()">+ Bild hinzufügen</button>
         </div>
-        <div id="img-list" class="img-list"></div>
-        <p style="font-size:.75rem;color:var(--a-text-dim);margin-top:.4rem;">
-          Direkte Bild-URLs vom Server, z.B. <code style="font-family:var(--a-ff-mono);">https://example.com/bild.jpg</code>
+
+        <!-- Vorhandene Bilder (beim Bearbeiten) -->
+        <div id="existing-imgs-wrap" style="display:none;margin-bottom:.75rem;">
+          <div class="detail-field-label" style="margin-bottom:.4rem;">Vorhandene Bilder</div>
+          <div class="existing-imgs-grid" id="existing-imgs-grid"></div>
+        </div>
+
+        <div id="img-entries" style="display:flex;flex-direction:column;gap:.6rem;"></div>
+        <p style="font-size:.72rem;color:var(--a-text-dim);margin-top:.5rem;">
+          Bild hochladen (wird als PNG gespeichert) <em>oder</em> externe URL eingeben.
         </p>
       </div>
 
@@ -140,7 +288,10 @@
 <script src="/static/js/admin.js"></script>
 <script>
 let projekte = [];
+// Bilder die beim Bearbeiten entfernt wurden (Keys aus Bilder-Objekt)
+let removedBilderKeys = [];
 
+/* ── Init ────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAuth()) return;
   if (window.innerWidth <= 900) document.getElementById('sidebar-toggle').style.display = 'inline-flex';
@@ -149,10 +300,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await loadProjekte();
   updateSidebarBadges();
-
   document.getElementById('search-input').addEventListener('input', renderTable);
 });
 
+/* ── Laden & Tabelle ─────────────────────────────────────── */
 async function loadProjekte() {
   try {
     const res = await apiFetch('/api/projekte');
@@ -172,38 +323,33 @@ function renderTable() {
   if (search) data = data.filter(p =>
     (p.Titel + p.Beschreibung + p.Kategorie).toLowerCase().includes(search)
   );
-
-  document.getElementById('projekte-count').textContent =
-    `${projekte.length} Projekt(e) insgesamt`;
-
+  document.getElementById('projekte-count').textContent = `${projekte.length} Projekt(e) insgesamt`;
   const tbody = document.getElementById('projekte-tbody');
   if (!data.length) {
     tbody.innerHTML = '<tr><td colspan="6" class="table-empty">Keine Projekte gefunden.</td></tr>';
     return;
   }
-
   tbody.innerHTML = data.map((p, i) => {
     const realIdx = projekte.indexOf(p);
     const bildCount = Object.keys(p.Bilder || {}).length;
     const desc = p.Beschreibung ? (p.Beschreibung.length > 60 ? p.Beschreibung.slice(0, 60) + '…' : p.Beschreibung) : '—';
-    return `
-      <tr>
-        <td class="mono">${realIdx + 1}</td>
-        <td style="font-weight:600;color:var(--a-heading)">${esc(p.Titel)}</td>
-        <td><span class="badge badge--accent">${esc(p.Kategorie || '—')}</span></td>
-        <td class="mono">${bildCount} Bild${bildCount !== 1 ? 'er' : ''}</td>
-        <td style="color:var(--a-text-dim);font-size:.84rem;">${esc(desc)}</td>
-        <td>
-          <div class="action-group">
-            <button class="btn btn--ghost btn--sm" onclick="openEditModal(${realIdx})" title="Bearbeiten">✎</button>
-            <button class="btn btn--danger btn--sm" onclick="deleteProjekt(${realIdx})" title="Löschen">✕</button>
-          </div>
-        </td>
-      </tr>`;
+    return `<tr>
+      <td class="mono">${realIdx + 1}</td>
+      <td style="font-weight:600;color:var(--a-heading)">${esc(p.Titel)}</td>
+      <td><span class="badge badge--accent">${esc(p.Kategorie || '—')}</span></td>
+      <td class="mono">${bildCount} Bild${bildCount !== 1 ? 'er' : ''}</td>
+      <td style="color:var(--a-text-dim);font-size:.84rem;">${esc(desc)}</td>
+      <td>
+        <div class="action-group">
+          <button class="btn btn--ghost btn--sm" onclick="openEditModal(${realIdx})" title="Bearbeiten">✎</button>
+          <button class="btn btn--danger btn--sm" onclick="deleteProjekt(${realIdx})" title="Löschen">✕</button>
+        </div>
+      </td>
+    </tr>`;
   }).join('');
 }
 
-/* ── Create ──────────────────────────────────────────────────── */
+/* ── Modal öffnen: Neu ───────────────────────────────────── */
 function openCreateModal() {
   document.getElementById('modal-title-text').textContent = 'Neues Projekt';
   document.getElementById('edit-index').value = '';
@@ -211,11 +357,15 @@ function openCreateModal() {
   document.getElementById('f-kategorie').value = 'Hochbau';
   document.getElementById('f-beschreibung').value = '';
   document.getElementById('modal-error').style.display = 'none';
-  resetImageList([]);
+  document.getElementById('existing-imgs-wrap').style.display = 'none';
+  document.getElementById('existing-imgs-grid').innerHTML = '';
+  removedBilderKeys = [];
+  clearImageEntries();
+  addImageEntry();
   document.getElementById('projekt-modal').classList.add('open');
 }
 
-/* ── Edit ────────────────────────────────────────────────────── */
+/* ── Modal öffnen: Bearbeiten ────────────────────────────── */
 function openEditModal(idx) {
   const p = projekte[idx];
   document.getElementById('modal-title-text').textContent = 'Projekt bearbeiten';
@@ -224,55 +374,235 @@ function openEditModal(idx) {
   document.getElementById('f-kategorie').value = p.Kategorie || 'Hochbau';
   document.getElementById('f-beschreibung').value = p.Beschreibung;
   document.getElementById('modal-error').style.display = 'none';
-  resetImageList(Object.values(p.Bilder || {}));
+  removedBilderKeys = [];
+
+  // Vorhandene Bilder anzeigen
+  const bilder = p.Bilder || {};
+  const keys   = Object.keys(bilder);
+  const grid   = document.getElementById('existing-imgs-grid');
+  const wrap   = document.getElementById('existing-imgs-wrap');
+
+  grid.innerHTML = '';
+  if (keys.length) {
+    wrap.style.display = 'block';
+    keys.forEach(key => {
+      const url = bilder[key];
+      const thumb = document.createElement('div');
+      thumb.className = 'existing-img-thumb';
+      thumb.dataset.key = key;
+      thumb.innerHTML = `
+        <img src="${esc(url)}" alt="${esc(key)}" onerror="this.src=''">
+        <span class="del-thumb" onclick="removeExistingImg(this,'${esc(key)}')" title="Bild entfernen">✕</span>`;
+      grid.appendChild(thumb);
+    });
+  } else {
+    wrap.style.display = 'none';
+  }
+
+  clearImageEntries();
+  addImageEntry(); // Leeres Entry für neue Bilder
   document.getElementById('projekt-modal').classList.add('open');
 }
 
-/* ── Image rows ──────────────────────────────────────────────── */
-function resetImageList(urls) {
-  const list = document.getElementById('img-list');
-  list.innerHTML = '';
-  if (urls.length === 0) {
-    addImageRow();
-  } else {
-    urls.forEach(url => addImageRow(url));
+function removeExistingImg(btn, key) {
+  removedBilderKeys.push(key);
+  btn.closest('.existing-img-thumb').remove();
+  // Falls Grid leer → Wrap verstecken
+  if (!document.getElementById('existing-imgs-grid').children.length) {
+    document.getElementById('existing-imgs-wrap').style.display = 'none';
   }
 }
 
-function addImageRow(value = '') {
-  const list = document.getElementById('img-list');
-  const row = document.createElement('div');
-  row.className = 'img-row';
-  row.innerHTML = `
-    <input type="url" class="form-input img-url" placeholder="https://example.com/bild.jpg" value="${esc(value)}">
-    <button class="btn btn--danger btn--sm" type="button" onclick="this.parentElement.remove()" title="Entfernen">✕</button>`;
-  list.appendChild(row);
-  row.querySelector('input').focus();
+/* ── Bild-Einträge verwalten ─────────────────────────────── */
+function clearImageEntries() {
+  document.getElementById('img-entries').innerHTML = '';
 }
 
-/* ── Save ────────────────────────────────────────────────────── */
+let entryCounter = 0;
+function addImageEntry(preloadUrl = '') {
+  const id = ++entryCounter;
+  const container = document.getElementById('img-entries');
+  const entry = document.createElement('div');
+  entry.className = 'img-entry';
+  entry.id = `img-entry-${id}`;
+  entry.innerHTML = `
+    <button class="btn btn--danger btn--sm img-entry-remove"
+            type="button" onclick="removeImageEntry(${id})" title="Entfernen">✕</button>
+    <div class="img-entry-tabs">
+      <button class="img-tab-btn active" type="button"
+              onclick="switchTab(${id},'upload')">⬆ Hochladen</button>
+      <button class="img-tab-btn" type="button"
+              onclick="switchTab(${id},'url')">🔗 URL</button>
+    </div>
+
+    <!-- Upload-Panel -->
+    <div class="img-tab-panel active" id="tab-upload-${id}">
+      <div class="img-upload-area" id="upload-area-${id}">
+        <input type="file" accept="image/*" id="file-input-${id}"
+               onchange="handleFileSelect(${id}, this)">
+        <div class="img-upload-hint">
+          <strong>Klicken</strong> oder Bild hierher ziehen<br>
+          <span style="font-size:.68rem;">JPG, PNG, WEBP usw.</span>
+        </div>
+      </div>
+      <div class="img-preview-wrap" id="preview-wrap-${id}">
+        <img id="preview-thumb-${id}" src="" alt="">
+        <span class="img-preview-name" id="preview-name-${id}"></span>
+        <span class="img-upload-status" id="upload-status-${id}"></span>
+      </div>
+    </div>
+
+    <!-- URL-Panel -->
+    <div class="img-tab-panel" id="tab-url-${id}">
+      <input type="url" class="form-input img-url-input"
+             id="url-input-${id}"
+             placeholder="https://example.com/bild.jpg"
+             value="${preloadUrl ? esc(preloadUrl) : ''}">
+    </div>
+
+    <!-- Versteckte finale URL (wird beim Speichern ausgelesen) -->
+    <input type="hidden" class="img-hidden-url" id="hidden-url-${id}">
+  `;
+
+  // Drag & Drop
+  const area = entry.querySelector(`#upload-area-${id}`);
+  area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('drag-over'); });
+  area.addEventListener('dragleave', () => area.classList.remove('drag-over'));
+  area.addEventListener('drop', e => {
+    e.preventDefault();
+    area.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) processFile(id, file);
+  });
+
+  container.appendChild(entry);
+
+  if (preloadUrl) {
+    // URL-Tab aktiv setzen
+    switchTab(id, 'url');
+  }
+}
+
+function removeImageEntry(id) {
+  const el = document.getElementById(`img-entry-${id}`);
+  if (el) el.remove();
+}
+
+function switchTab(id, tab) {
+  const entry = document.getElementById(`img-entry-${id}`);
+  entry.querySelectorAll('.img-tab-btn').forEach(b => b.classList.remove('active'));
+  entry.querySelectorAll('.img-tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`tab-${tab}-${id}`).classList.add('active');
+  // Passendes Tab-Button aktivieren
+  entry.querySelectorAll('.img-tab-btn').forEach(b => {
+    if ((tab === 'upload' && b.textContent.includes('Hochladen')) ||
+        (tab === 'url'    && b.textContent.includes('URL'))) {
+      b.classList.add('active');
+    }
+  });
+}
+
+function handleFileSelect(id, input) {
+  const file = input.files[0];
+  if (file) processFile(id, file);
+}
+
+async function processFile(id, file) {
+  const previewWrap = document.getElementById(`preview-wrap-${id}`);
+  const previewThumb= document.getElementById(`preview-thumb-${id}`);
+  const previewName = document.getElementById(`preview-name-${id}`);
+  const statusEl   = document.getElementById(`upload-status-${id}`);
+  const hiddenUrl  = document.getElementById(`hidden-url-${id}`);
+
+  // Lokale Vorschau
+  const reader = new FileReader();
+  reader.onload = e => {
+    previewThumb.src = e.target.result;
+    previewWrap.classList.add('visible');
+  };
+  reader.readAsDataURL(file);
+  previewName.textContent = file.name;
+  statusEl.className = 'img-upload-status uploading';
+  statusEl.textContent = 'Wird hochgeladen …';
+
+  // Upload zum Server
+  try {
+    const fd = new FormData();
+    fd.append('bild', file);
+    const res = await fetch('/api/admin/projekte/upload-bild', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${getToken()}` },
+      body: fd
+    });
+    const data = await res.json();
+    if (!res.ok || !data.url) throw new Error(data.error || 'Fehler');
+    hiddenUrl.value = data.url;
+    statusEl.className = 'img-upload-status done';
+    statusEl.textContent = '✓ Gespeichert';
+  } catch (err) {
+    statusEl.className = 'img-upload-status error';
+    statusEl.textContent = '✗ ' + err.message;
+    hiddenUrl.value = '';
+  }
+}
+
+/* ── Speichern ───────────────────────────────────────────── */
 async function saveProjekt() {
   const errEl = document.getElementById('modal-error');
   errEl.style.display = 'none';
 
-  const titel = document.getElementById('f-titel').value.trim();
-  const kategorie = document.getElementById('f-kategorie').value;
-  const beschreibung = document.getElementById('f-beschreibung').value.trim();
-  const bildUrls = [...document.querySelectorAll('.img-url')]
-    .map(i => i.value.trim())
-    .filter(Boolean);
+  const titel       = document.getElementById('f-titel').value.trim();
+  const kategorie   = document.getElementById('f-kategorie').value;
+  const beschreibung= document.getElementById('f-beschreibung').value.trim();
 
-  if (!titel) { showError('Titel ist erforderlich.'); return; }
-  if (!beschreibung) { showError('Beschreibung ist erforderlich.'); return; }
+  if (!titel)       { showError('Titel ist erforderlich.');       return; }
+  if (!beschreibung){ showError('Beschreibung ist erforderlich.'); return; }
 
-  const bilder = {};
-  bildUrls.forEach((url, i) => { bilder[`Bild_${String.fromCharCode(65 + i)}`] = url; });
+  // Bilder zusammenstellen
+  // 1. Vorhandene Bilder (minus entfernte)
+  const editIdx = document.getElementById('edit-index').value;
+  const isEdit  = editIdx !== '';
+  let bilder = {};
+  if (isEdit) {
+    const orig = projekte[parseInt(editIdx)].Bilder || {};
+    Object.entries(orig).forEach(([k, v]) => {
+      if (!removedBilderKeys.includes(k)) bilder[k] = v;
+    });
+  }
+
+  // 2. Neue Bilder aus Einträgen
+  const entries = document.querySelectorAll('#img-entries .img-entry');
+  let bildIdx   = Object.keys(bilder).length;
+
+  entries.forEach(entry => {
+    const id = entry.id.replace('img-entry-', '');
+    // Upload-Tab aktiv?
+    const uploadPanel = document.getElementById(`tab-upload-${id}`);
+    const urlPanel    = document.getElementById(`tab-url-${id}`);
+    let url = '';
+
+    if (uploadPanel && uploadPanel.classList.contains('active')) {
+      url = (document.getElementById(`hidden-url-${id}`) || {}).value || '';
+    } else {
+      url = (document.getElementById(`url-input-${id}`) || {}).value.trim();
+    }
+
+    if (url) {
+      const key = `Bild_${String.fromCharCode(65 + bildIdx)}`;
+      bilder[key] = url;
+      bildIdx++;
+    }
+  });
+
+  // Noch laufende Uploads prüfen
+  const uploading = document.querySelectorAll('.img-upload-status.uploading');
+  if (uploading.length) {
+    showError('Bitte warten Sie, bis alle Bilder hochgeladen sind.');
+    return;
+  }
 
   const projekt = { Titel: titel, Kategorie: kategorie, Beschreibung: beschreibung, Bilder: bilder };
-
-  const editIdx = document.getElementById('edit-index').value;
-  const isEdit = editIdx !== '';
-  const idx = isEdit ? parseInt(editIdx) : -1;
+  const idx     = isEdit ? parseInt(editIdx) : -1;
 
   const btn = document.getElementById('modal-save-btn');
   btn.textContent = 'Speichern …';
@@ -281,22 +611,11 @@ async function saveProjekt() {
   try {
     let res;
     if (isEdit) {
-      res = await apiFetch(`/api/admin/projekte/${idx}`, {
-        method: 'PUT',
-        body: JSON.stringify(projekt)
-      });
+      res = await apiFetch(`/api/admin/projekte/${idx}`, { method: 'PUT', body: JSON.stringify(projekt) });
     } else {
-      res = await apiFetch('/api/admin/projekte', {
-        method: 'POST',
-        body: JSON.stringify(projekt)
-      });
+      res = await apiFetch('/api/admin/projekte', { method: 'POST', body: JSON.stringify(projekt) });
     }
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Unbekannter Fehler');
-    }
-
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Fehler'); }
     closeModal('projekt-modal');
     await loadProjekte();
     showToast(isEdit ? 'Projekt aktualisiert.' : 'Projekt erstellt.', 'success');
@@ -314,13 +633,10 @@ function showError(msg) {
   el.style.display = 'block';
 }
 
-/* ── Delete ──────────────────────────────────────────────────── */
+/* ── Löschen ─────────────────────────────────────────────── */
 async function deleteProjekt(idx) {
   const p = projekte[idx];
-  const ok = await showConfirm(
-    'Projekt löschen?',
-    `"${p.Titel}" wird dauerhaft gelöscht.`
-  );
+  const ok = await showConfirm('Projekt löschen?', `"${p.Titel}" wird dauerhaft gelöscht.`);
   if (!ok) return;
   try {
     const res = await apiFetch(`/api/admin/projekte/${idx}`, { method: 'DELETE' });
@@ -332,7 +648,7 @@ async function deleteProjekt(idx) {
   }
 }
 
-/* ── Helpers ─────────────────────────────────────────────────── */
+/* ── Helpers ─────────────────────────────────────────────── */
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
 }
