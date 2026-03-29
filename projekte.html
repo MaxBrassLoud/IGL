@@ -6,6 +6,54 @@
   <meta name="description" content="Unsere Projekte – Referenzbauvorhaben der IG Ludwig Ingenieurgesellschaft für Technische Gebäudeausrüstung.">
   <title>Unsere Projekte — IG Ludwig</title>
   <link rel="stylesheet" href="static/css/main.css">
+  <style>
+    /* ── Filter-Leiste ──────────────────────────────────────── */
+    .filter-strip {
+      background: var(--col-surface);
+      border-bottom: 1px solid var(--col-border);
+      padding-block: .85rem;
+      position: sticky;
+      top: var(--nav-h);
+      z-index: 50;
+    }
+    .filter-strip .container {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+    .filter-strip-label {
+      font-family: var(--ff-mono);
+      font-size: .66rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--col-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    #filter-bar {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    #filter-bar .filter-btn {
+      transition: background var(--transition), color var(--transition),
+                  border-color var(--transition);
+    }
+    /* Ergebnis-Zähler */
+    .filter-result {
+      margin-left: auto;
+      font-family: var(--ff-mono);
+      font-size: .66rem;
+      letter-spacing: .1em;
+      color: var(--col-muted);
+      white-space: nowrap;
+    }
+    @media (max-width: 640px) {
+      .filter-result { display: none; }
+    }
+  </style>
 </head>
 <body>
 
@@ -41,19 +89,19 @@
     <div class="container">
       <p class="label page-hero-label">— Referenzen</p>
       <h1>Unsere Projekte</h1>
-      <p class="page-hero-sub">Jedes Bauvorhaben erzählt eine Geschichte. Hier finden Sie einen Überblick über ausgewählte Referenzprojekte aus über 30 Jahren Ingenieursarbeit.</p>
+      <p class="page-hero-sub">Jedes Bauvorhaben erzählt eine Geschichte. Hier finden Sie einen Überblick über ausgewählte Referenzprojekte aus über 40 Jahren Ingenieursarbeit.</p>
     </div>
   </div>
 
-  <!-- ── Filter-Leiste ─────────────────────────────────────── -->
-  <div style="background:var(--col-surface);border-bottom:1px solid var(--col-border);padding-block:.75rem;">
-    <div class="container" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
-      <span class="label" style="color:var(--col-muted);">Filtern:</span>
-      <button class="btn btn--primary" style="padding:.45rem 1rem;font-size:.7rem;" data-filter="all">Alle</button>
-      <button class="btn btn--outline" style="padding:.45rem 1rem;font-size:.7rem;" data-filter="Hochbau">Hochbau</button>
-      <button class="btn btn--outline" style="padding:.45rem 1rem;font-size:.7rem;" data-filter="Industriebau">Industriebau</button>
-      <button class="btn btn--outline" style="padding:.45rem 1rem;font-size:.7rem;" data-filter="Sanierung">Sanierung</button>
-      <button class="btn btn--outline" style="padding:.45rem 1rem;font-size:.7rem;" data-filter="Sonderbauwerk">Sonderbauwerk</button>
+  <!-- ── Filter-Leiste (dynamisch befüllt via JS) ──────────── -->
+  <div class="filter-strip">
+    <div class="container">
+      <span class="filter-strip-label">Filtern:</span>
+      <div id="filter-bar" role="group" aria-label="Projektfilter">
+        <!-- Wird via projekte.js befüllt -->
+        <span style="font-family:var(--ff-mono);font-size:.7rem;color:var(--col-muted);">Lädt …</span>
+      </div>
+      <span class="filter-result" id="filter-count"></span>
     </div>
   </div>
 
