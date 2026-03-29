@@ -6,12 +6,99 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Dashboard — Admin</title>
   <link rel="stylesheet" href="/static/css/admin.css">
+  <style>
+    /* ── Kategorie-Verwaltung ─────────────────────────────── */
+    .kat-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      margin-top: .75rem;
+    }
+    .kat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      background: var(--a-surface-2);
+      border: 1px solid var(--a-border-2);
+      border-radius: 3px;
+      padding: .3rem .65rem .3rem .85rem;
+      font-family: var(--a-ff-mono);
+      font-size: .7rem;
+      letter-spacing: .08em;
+      color: var(--a-text);
+      transition: border-color .15s;
+    }
+    .kat-chip:hover { border-color: var(--a-border-2); }
+    .kat-chip-count {
+      color: var(--a-text-dim);
+      font-size: .62rem;
+    }
+    .kat-chip-actions {
+      display: flex;
+      gap: .15rem;
+      margin-left: .2rem;
+    }
+    .kat-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--a-text-dim);
+      font-size: .72rem;
+      padding: 1px 3px;
+      border-radius: 2px;
+      line-height: 1;
+      transition: color .15s, background .15s;
+    }
+    .kat-btn:hover        { color: var(--a-text); background: rgba(255,255,255,.06); }
+    .kat-btn.del:hover    { color: var(--a-red);  background: rgba(248,113,113,.08); }
+    .kat-btn.edit:hover   { color: var(--a-accent); }
+
+    .kat-add-row {
+      display: flex;
+      gap: .5rem;
+      margin-top: 1rem;
+      align-items: center;
+    }
+    .kat-add-input {
+      flex: 1;
+      background: var(--a-surface-2);
+      border: 1px solid var(--a-border-2);
+      border-radius: var(--radius);
+      color: var(--a-text);
+      padding: .45rem .85rem;
+      font-size: .84rem;
+      font-family: var(--a-ff-body);
+      outline: none;
+      transition: border-color .18s;
+      max-width: 260px;
+    }
+    .kat-add-input:focus { border-color: var(--a-accent); }
+    .kat-add-input::placeholder { color: var(--a-text-dim); }
+
+    /* Inline-Umbenennen */
+    .kat-rename-input {
+      background: var(--a-surface-2);
+      border: 1px solid var(--a-accent);
+      border-radius: 2px;
+      color: var(--a-text);
+      font-family: var(--a-ff-mono);
+      font-size: .7rem;
+      padding: 1px 6px;
+      outline: none;
+      width: 130px;
+    }
+
+    /* Trennlinie über Kategorie-Karte */
+    .section-divider {
+      border: none;
+      border-top: 1px solid var(--a-border);
+      margin: 2rem 0;
+    }
+  </style>
 </head>
 <body>
 
 <div class="admin-shell">
-
-  <!-- ── Sidebar ────────────────────────────────────────────── -->
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-brand">IG Ludwig</div>
@@ -19,20 +106,14 @@
     </div>
     <nav class="sidebar-nav">
       <div class="sidebar-section-label">Verwaltung</div>
-      <a href="/admin/" class="sidebar-link">
-        <span class="icon">⬡</span> Dashboard
-      </a>
+      <a href="/admin/" class="sidebar-link active"><span class="icon">⬡</span> Dashboard</a>
       <a href="/admin/anfragen" class="sidebar-link">
         <span class="icon">✉</span> Anfragen
         <span class="sidebar-badge" id="badge-anfragen" style="display:none">0</span>
       </a>
-      <a href="/admin/projekte" class="sidebar-link">
-        <span class="icon">◈</span> Projekte
-      </a>
+      <a href="/admin/projekte" class="sidebar-link"><span class="icon">◈</span> Projekte</a>
       <div class="sidebar-section-label" style="margin-top:1rem;">Website</div>
-      <a href="/" target="_blank" class="sidebar-link">
-        <span class="icon">↗</span> Website ansehen
-      </a>
+      <a href="/" target="_blank" class="sidebar-link"><span class="icon">↗</span> Website ansehen</a>
     </nav>
     <div class="sidebar-footer">
       <div class="sidebar-user">Eingeloggt als <strong id="sidebar-username">—</strong></div>
@@ -40,12 +121,9 @@
     </div>
   </aside>
 
-  <!-- ── Main ───────────────────────────────────────────────── -->
   <div class="admin-main">
     <header class="topbar">
-      <div class="topbar-title">
-        <strong>Dashboard</strong> <span>/ Übersicht</span>
-      </div>
+      <div class="topbar-title"><strong>Dashboard</strong> <span>/ Übersicht</span></div>
       <div class="topbar-actions">
         <button id="sidebar-toggle" class="btn btn--ghost btn--sm" style="display:none;" aria-label="Menü">☰</button>
       </div>
@@ -90,11 +168,7 @@
         <table>
           <thead>
             <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Betreff</th>
-              <th>Datum</th>
-              <th>Status</th>
+              <th>#</th><th>Name</th><th>Betreff</th><th>Datum</th><th>Status</th>
             </tr>
           </thead>
           <tbody id="recent-anfragen">
@@ -104,26 +178,58 @@
       </div>
 
       <!-- Projekte Übersicht -->
-      <div class="table-wrap">
+      <div class="table-wrap" style="margin-bottom:2rem;">
         <div class="table-toolbar">
           <span class="table-title">Projekte Übersicht</span>
           <a href="/admin/projekte" class="btn btn--ghost btn--sm">Verwalten →</a>
         </div>
         <table>
           <thead>
-            <tr>
-              <th>#</th>
-              <th>Titel</th>
-              <th>Kategorie</th>
-              <th>Bilder</th>
-            </tr>
+            <tr><th>#</th><th>Titel</th><th>Kategorie</th><th>Bilder</th></tr>
           </thead>
           <tbody id="recent-projekte">
             <tr><td colspan="4" class="table-empty">Wird geladen …</td></tr>
           </tbody>
         </table>
       </div>
-    </div>
+
+      <hr class="section-divider">
+
+      <!-- ── Kategorie-Verwaltung ──────────────────────────── -->
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <span class="table-title">Projektkategorien</span>
+          <span style="font-family:var(--a-ff-mono);font-size:.65rem;color:var(--a-text-dim);">
+            Sichtbar als Filter auf der Projektseite
+          </span>
+        </div>
+        <div style="padding:1.25rem 1.5rem;">
+
+          <!-- Chip-Liste -->
+          <div class="kat-grid" id="kat-grid">
+            <span style="font-family:var(--a-ff-mono);font-size:.75rem;color:var(--a-text-dim);">
+              Wird geladen …
+            </span>
+          </div>
+
+          <!-- Neue Kategorie hinzufügen -->
+          <div class="kat-add-row">
+            <input type="text" class="kat-add-input" id="kat-add-input"
+                   placeholder="Neue Kategorie …" maxlength="60"
+                   onkeydown="if(event.key==='Enter') addKategorie()">
+            <button class="btn btn--primary btn--sm" onclick="addKategorie()">
+              + Hinzufügen
+            </button>
+          </div>
+
+          <p style="margin-top:.75rem;font-size:.74rem;color:var(--a-text-dim);">
+            Kategorien mit Projekten können nicht gelöscht werden (erst Projekte umkategorisieren).
+            Beim Umbenennen werden alle zugeordneten Projekte automatisch aktualisiert.
+          </p>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
   </div>
 </div>
 
@@ -141,72 +247,216 @@
 
 <script src="/static/js/admin.js"></script>
 <script>
+/* ── Init ─────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', async () => {
   if (!requireAuth()) return;
-
-  // Sidebar toggle sichtbar auf Mobile
-  const toggle = document.getElementById('sidebar-toggle');
-  if (window.innerWidth <= 900) toggle.style.display = 'inline-flex';
-
-  // Username anzeigen
+  if (window.innerWidth <= 900) document.getElementById('sidebar-toggle').style.display = 'inline-flex';
   const stored = sessionStorage.getItem('sp_admin_user');
   if (stored) document.getElementById('sidebar-username').textContent = stored;
 
   await loadDashboard();
+  await loadKategorien();
   updateSidebarBadges();
 });
 
+/* ── Dashboard laden ─────────────────────────────────────── */
 async function loadDashboard() {
   try {
-    // Stats
     const statsRes = await apiFetch('/api/admin/stats');
     if (statsRes.ok) {
       const s = await statsRes.json();
-      document.getElementById('stat-anfragen-gesamt').textContent = s.anfragen_gesamt ?? 0;
+      document.getElementById('stat-anfragen-gesamt').textContent   = s.anfragen_gesamt   ?? 0;
       document.getElementById('stat-anfragen-ungelesen').textContent = s.anfragen_ungelesen ?? 0;
-      document.getElementById('stat-projekte').textContent = s.projekte ?? 0;
-      document.getElementById('stat-kategorien').textContent = s.kategorien ?? 0;
+      document.getElementById('stat-projekte').textContent           = s.projekte           ?? 0;
+      document.getElementById('stat-kategorien').textContent         = s.kategorien         ?? 0;
     }
 
-    // Anfragen
     const aRes = await apiFetch('/api/admin/anfragen?limit=5');
     if (aRes.ok) {
       const anfragen = await aRes.json();
       const tbody = document.getElementById('recent-anfragen');
-      if (!anfragen.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="table-empty">Keine Anfragen vorhanden.</td></tr>';
-      } else {
-        tbody.innerHTML = anfragen.map(a => `
-          <tr>
+      tbody.innerHTML = anfragen.length
+        ? anfragen.map(a => `<tr>
             <td class="mono">#${a.id}</td>
             <td>${esc(a.name)}</td>
             <td>${esc(a.betreff || '—')}</td>
             <td class="mono">${formatDate(a.timestamp)}</td>
             <td><span class="badge ${a.gelesen ? 'badge--read' : 'badge--new'}">${a.gelesen ? 'Gelesen' : 'Neu'}</span></td>
-          </tr>`).join('');
-      }
+          </tr>`).join('')
+        : '<tr><td colspan="5" class="table-empty">Keine Anfragen vorhanden.</td></tr>';
     }
 
-    // Projekte
     const pRes = await apiFetch('/api/projekte');
     if (pRes.ok) {
       const data = await pRes.json();
       const projekte = data.Bauvorhaben || [];
       const tbody2 = document.getElementById('recent-projekte');
-      if (!projekte.length) {
-        tbody2.innerHTML = '<tr><td colspan="4" class="table-empty">Keine Projekte.</td></tr>';
-      } else {
-        tbody2.innerHTML = projekte.slice(0, 5).map((p, i) => `
-          <tr>
+      tbody2.innerHTML = projekte.length
+        ? projekte.slice(0, 5).map((p, i) => `<tr>
             <td class="mono">${i + 1}</td>
             <td>${esc(p.Titel)}</td>
             <td><span class="badge badge--accent">${esc(p.Kategorie || '—')}</span></td>
             <td class="mono">${Object.keys(p.Bilder || {}).length}</td>
-          </tr>`).join('');
-      }
+          </tr>`).join('')
+        : '<tr><td colspan="4" class="table-empty">Keine Projekte.</td></tr>';
     }
   } catch (err) {
     showToast('Fehler beim Laden der Dashboard-Daten.', 'error');
+  }
+}
+
+/* ── Kategorien ──────────────────────────────────────────── */
+let kategorienData = []; // [{name, count}]
+
+async function loadKategorien() {
+  try {
+    const res = await apiFetch('/api/admin/kategorien');
+    if (!res.ok) throw new Error();
+    kategorienData = await res.json();
+    renderKategorien();
+  } catch {
+    document.getElementById('kat-grid').innerHTML =
+      '<span style="color:var(--a-red);font-size:.8rem;">Fehler beim Laden.</span>';
+  }
+}
+
+function renderKategorien() {
+  const grid = document.getElementById('kat-grid');
+  if (!kategorienData.length) {
+    grid.innerHTML = '<span style="font-family:var(--a-ff-mono);font-size:.75rem;color:var(--a-text-dim);">Keine Kategorien vorhanden.</span>';
+    return;
+  }
+
+  grid.innerHTML = '';
+  kategorienData.forEach(({ name, count }) => {
+    const chip = document.createElement('div');
+    chip.className = 'kat-chip';
+    chip.id = `kat-chip-${CSS.escape(name)}`;
+    chip.innerHTML = `
+      <span class="kat-chip-name">${esc(name)}</span>
+      <span class="kat-chip-count">(${count})</span>
+      <div class="kat-chip-actions">
+        <button class="kat-btn edit" title="Umbenennen"
+                onclick="startRename('${esc(name)}')">✎</button>
+        <button class="kat-btn del" title="Löschen"
+                onclick="deleteKategorie('${esc(name)}', ${count})"
+                ${count > 0 ? 'disabled style="opacity:.3;cursor:not-allowed;"' : ''}>✕</button>
+      </div>`;
+    grid.appendChild(chip);
+  });
+
+  // Stat aktualisieren
+  document.getElementById('stat-kategorien').textContent = kategorienData.length;
+}
+
+/* ── Hinzufügen ──────────────────────────────────────────── */
+async function addKategorie() {
+  const input = document.getElementById('kat-add-input');
+  const name  = input.value.trim();
+  if (!name) { input.focus(); return; }
+
+  try {
+    const res = await apiFetch('/api/admin/kategorien', {
+      method: 'POST',
+      body: JSON.stringify({ name })
+    });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error || 'Fehler', 'error'); return; }
+    input.value = '';
+    await loadKategorien();
+    showToast(`Kategorie „${name}" erstellt.`, 'success');
+  } catch {
+    showToast('Fehler beim Erstellen.', 'error');
+  }
+}
+
+/* ── Löschen ─────────────────────────────────────────────── */
+async function deleteKategorie(name, count) {
+  if (count > 0) {
+    showToast(`Kategorie wird von ${count} Projekt(en) verwendet.`, 'error');
+    return;
+  }
+  const ok = await showConfirm('Kategorie löschen?', `„${name}" wird dauerhaft entfernt.`);
+  if (!ok) return;
+
+  try {
+    const res = await apiFetch(
+      `/api/admin/kategorien/${encodeURIComponent(name)}`,
+      { method: 'DELETE' }
+    );
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error || 'Fehler', 'error'); return; }
+    await loadKategorien();
+    showToast(`Kategorie „${name}" gelöscht.`, 'success');
+  } catch {
+    showToast('Fehler beim Löschen.', 'error');
+  }
+}
+
+/* ── Umbenennen ──────────────────────────────────────────── */
+function startRename(name) {
+  const chip = document.getElementById(`kat-chip-${CSS.escape(name)}`);
+  if (!chip) return;
+
+  // Chip temporär durch Input ersetzen
+  const nameSpan  = chip.querySelector('.kat-chip-name');
+  const countSpan = chip.querySelector('.kat-chip-count');
+  const actions   = chip.querySelector('.kat-chip-actions');
+
+  nameSpan.style.display  = 'none';
+  countSpan.style.display = 'none';
+  actions.style.display   = 'none';
+
+  const inp = document.createElement('input');
+  inp.type       = 'text';
+  inp.className  = 'kat-rename-input';
+  inp.value      = name;
+  inp.maxLength  = 60;
+  chip.insertBefore(inp, nameSpan);
+  inp.focus();
+  inp.select();
+
+  const confirmBtn = document.createElement('button');
+  confirmBtn.className   = 'kat-btn edit';
+  confirmBtn.textContent = '✓';
+  confirmBtn.title       = 'Speichern';
+  chip.appendChild(confirmBtn);
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className   = 'kat-btn';
+  cancelBtn.textContent = '✕';
+  cancelBtn.title       = 'Abbrechen';
+  chip.appendChild(cancelBtn);
+
+  const doRename = () => finishRename(name, inp.value.trim());
+  const doCancel = () => renderKategorien(); // Einfach neu rendern
+
+  confirmBtn.onclick = doRename;
+  cancelBtn.onclick  = doCancel;
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter')  doRename();
+    if (e.key === 'Escape') doCancel();
+  });
+}
+
+async function finishRename(oldName, newName) {
+  if (!newName || newName === oldName) { renderKategorien(); return; }
+
+  try {
+    const res = await apiFetch(
+      `/api/admin/kategorien/${encodeURIComponent(oldName)}`,
+      { method: 'PUT', body: JSON.stringify({ name: newName }) }
+    );
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error || 'Fehler', 'error'); renderKategorien(); return; }
+    await loadKategorien();
+    const msg = data.updated_projects > 0
+      ? `Umbenannt. ${data.updated_projects} Projekt(e) aktualisiert.`
+      : `Umbenannt zu „${newName}".`;
+    showToast(msg, 'success');
+  } catch {
+    showToast('Fehler beim Umbenennen.', 'error');
+    renderKategorien();
   }
 }
 </script>
