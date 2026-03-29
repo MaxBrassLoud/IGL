@@ -1,9 +1,12 @@
 /* ============================================================
-   SCHREIBER & PARTNER — Projekte JavaScript
-   API-Abfrage, Skeleton Loading, Karten, Modal
+   IG Ludwig — Projekte JavaScript
+   API-Abfrage, Skeleton Loading, Karten, Modal, Filter
    ============================================================ */
 
 const API_URL = '/api/projekte';
+
+let allProjekte  = [];
+let activeFilter = 'all';
 
 document.addEventListener('DOMContentLoaded', () => {
   loadProjects();
@@ -22,8 +25,7 @@ function renderSkeletons(container, count = 6) {
           <div class="skeleton skeleton-line"></div>
           <div class="skeleton skeleton-line skeleton-line--short"></div>
         </div>
-      </div>
-    `);
+      </div>`);
   }
 }
 
@@ -38,8 +40,9 @@ async function loadProjects() {
     const res = await fetch(API_URL);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    const projekte = data.Bauvorhaben || [];
-    renderProjects(grid, projekte);
+    allProjekte = data.Bauvorhaben || [];
+    buildFilterBar();
+    applyFilter(activeFilter);
   } catch (err) {
     grid.innerHTML = `
       <div class="load-error">
@@ -51,14 +54,86 @@ async function loadProjects() {
         <button class="btn btn--outline" style="margin-top:1.5rem" onclick="loadProjects()">
           Erneut laden
         </button>
-      </div>
-    `;
+      </div>`;
   }
 }
 
+/* ── Filterleiste dynamisch befüllen ─────────────────────────── */
+function buildFilterBar() {
+  const bar = document.getElementById('filter-bar');
+  if (!bar) return;
+
+  // Alle vorhandenen Kategorien sammeln (nur die die wirklich existieren)
+  const cats = [...new Set(allProjekte.map(p => p.Kategorie).filter(Boolean))].sort();
+
+  bar.innerHTML = '';
+
+  // "Alle"-Button
+  const allBtn = makeFilterBtn('all', `Alle (${allProjekte.length})`);
+  bar.appendChild(allBtn);
+
+  cats.forEach(cat => {
+    const count = allProjekte.filter(p => p.Kategorie === cat).length;
+    bar.appendChild(makeFilterBtn(cat, `${cat} (${count})`));
+  });
+
+  updateFilterActive();
+}
+
+function makeFilterBtn(value, label) {
+  const btn = document.createElement('button');
+  btn.className = 'filter-btn btn btn--outline';
+  btn.dataset.filter = value;
+  btn.textContent = label;
+  btn.style.cssText = 'padding:.45rem 1rem;font-size:.7rem;';
+  btn.addEventListener('click', () => {
+    activeFilter = value;
+    updateFilterActive();
+    applyFilter(value);
+  });
+  return btn;
+}
+
+function updateFilterActive() {
+  document.querySelectorAll('#filter-bar .filter-btn').forEach(b => {
+    const isActive = b.dataset.filter === activeFilter;
+    b.classList.toggle('btn--primary', isActive);
+    b.classList.toggle('btn--outline',  !isActive);
+  });
+}
+
+/* ── Filter anwenden ─────────────────────────────────────────── */
+function applyFilter(filter) {
+  const filtered = filter === 'all'
+    ? allProjekte
+    : allProjekte.filter(p => p.Kategorie === filter);
+
+  const grid = document.getElementById('projects-grid');
+  if (!grid) return;
+
+  // Anzahl-Info aktualisieren
+  const countEl = document.getElementById('filter-count');
+  if (countEl) {
+    countEl.textContent = filter === 'all'
+      ? `${allProjekte.length} Projekt${allProjekte.length !== 1 ? 'e' : ''}`
+      : `${filtered.length} von ${allProjekte.length} Projekt${allProjekte.length !== 1 ? 'en' : ''}`;
+  }
+
+  renderProjects(grid, filtered);
+}
+
+/* ── Karten rendern ──────────────────────────────────────────── */
 function renderProjects(grid, projekte) {
   if (!projekte.length) {
-    grid.innerHTML = `<div class="load-error"><p>Keine Projekte vorhanden.</p></div>`;
+    grid.innerHTML = `
+      <div class="load-error">
+        <div class="error-icon" style="font-size:2rem;">🔍</div>
+        <p style="margin-top:.5rem;">Keine Projekte in dieser Kategorie.</p>
+        <button class="btn btn--outline" style="margin-top:1rem;"
+                onclick="activeFilter='all';updateFilterActive();applyFilter('all')">
+          Alle anzeigen
+        </button>
+      </div>`;
     return;
   }
 
@@ -78,7 +153,7 @@ function renderProjects(grid, projekte) {
 
     card.innerHTML = `
       <div class="card-img-wrap">
-        <img src="${titelBild}" alt="${projekt.Titel}" loading="lazy"
+        <img src="${titelBild}" alt="${escapeHtml(projekt.Titel)}" loading="lazy"
              onerror="this.src='/static/img/placeholder.svg'">
         ${bildAnzahl > 1 ? `<span class="card-img-count">+${bildAnzahl - 1} Bilder</span>` : ''}
       </div>
@@ -89,42 +164,41 @@ function renderProjects(grid, projekte) {
           <span class="card-tag">${escapeHtml(projekt.Kategorie || 'Bauvorhaben')}</span>
           <span class="card-link">Details →</span>
         </div>
-      </div>
-    `;
+      </div>`;
 
     card.addEventListener('click', () => openModal(projekt));
-    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openModal(projekt); });
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') openModal(projekt);
+    });
     grid.appendChild(card);
   });
 
-  // Trigger reveal observer on new elements
-  if (window.initScrollReveal) window.initScrollReveal();
-  else {
-    // Re-run reveal for dynamically added cards
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const delay = entry.target.dataset.revealDelay || 0;
-          setTimeout(() => entry.target.classList.add('revealed'), Number(delay));
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.1 });
-    document.querySelectorAll('[data-reveal]').forEach(el => observer.observe(el));
-  }
+  // Reveal-Observer für neu hinzugefügte Karten
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const delay = Number(entry.target.dataset.revealDelay || 0);
+        setTimeout(() => entry.target.classList.add('revealed'), delay);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  grid.querySelectorAll('[data-reveal]').forEach(el => observer.observe(el));
 }
 
 /* ── Modal ───────────────────────────────────────────────────── */
 function openModal(projekt) {
   const overlay = document.getElementById('projekt-modal');
-  const bilder = Object.values(projekt.Bilder || {});
+  const bilder  = Object.values(projekt.Bilder || {});
 
   document.getElementById('modal-title').textContent = projekt.Titel;
-  document.getElementById('modal-desc').textContent = projekt.Beschreibung;
+  document.getElementById('modal-desc').textContent  = projekt.Beschreibung;
 
   const gallery = document.getElementById('modal-gallery');
   gallery.innerHTML = bilder.length
-    ? bilder.map(src => `<img src="${src}" alt="${escapeHtml(projekt.Titel)}" loading="lazy" onerror="this.src='/static/img/placeholder.svg'">`).join('')
+    ? bilder.map(src =>
+        `<img src="${src}" alt="${escapeHtml(projekt.Titel)}" loading="lazy"
+              onerror="this.src='/static/img/placeholder.svg'">`).join('')
     : `<img src="/static/img/placeholder.svg" alt="Kein Bild verfügbar">`;
 
   overlay.classList.add('open');
@@ -133,15 +207,13 @@ function openModal(projekt) {
 }
 
 function closeModal() {
-  const overlay = document.getElementById('projekt-modal');
-  overlay.classList.remove('open');
+  document.getElementById('projekt-modal').classList.remove('open');
   document.body.style.overflow = '';
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   const overlay = document.getElementById('projekt-modal');
   if (!overlay) return;
-
   document.getElementById('modal-close-btn').addEventListener('click', closeModal);
   overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
@@ -151,12 +223,9 @@ document.addEventListener('DOMContentLoaded', () => {
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
-
 function truncate(str, max) {
   if (!str) return '';
   return str.length <= max ? str : str.slice(0, max).trimEnd() + '…';
